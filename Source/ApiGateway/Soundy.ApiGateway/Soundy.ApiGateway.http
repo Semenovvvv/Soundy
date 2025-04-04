@@ -1,0 +1,6 @@
+@Soundy.ApiGateway_HostAddress = http://localhost:5291
+
+GET {{Soundy.ApiGateway_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

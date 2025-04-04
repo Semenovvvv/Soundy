@@ -1,0 +1,21 @@
+# This is a generated file. Not intended for manual editing.
+services:
+  user_service:
+    build:
+      context: "C:\\Users\\Goggl\\source\\repos\\Soundy\\Source"
+      dockerfile: "Services/UserService/Soundy.UserService/Dockerfile"
+      target: "base"
+    command: []
+    entrypoint:
+    - "dotnet"
+    - "/app/bin/Debug/net8.0/Soundy.UserService.dll"
+    environment:
+      ASPNETCORE_ENVIRONMENT: "Development"
+      DOTNET_USE_POLLING_FILE_WATCHER: "true"
+    image: "soundy.userservice:dev"
+    ports: []
+    volumes:
+    - "C:\\Users\\Goggl\\source\\repos\\Soundy\\Source\\Services\\UserService\\Soundy.UserService:/app:rw"
+    - "C:\\Users\\Goggl\\source\\repos\\Soundy\\Source:/src:rw"
+    - "C:\\Users\\Goggl\\.nuget\\packages:/home/app/.nuget/packages"
+    working_dir: "/app"

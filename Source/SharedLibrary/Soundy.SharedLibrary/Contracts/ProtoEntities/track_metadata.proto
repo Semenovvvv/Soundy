@@ -1,0 +1,13 @@
+﻿syntax = "proto3";
+
+option csharp_namespace = "soundy";
+
+package soundy;
+
+message TrackMetadata {
+  int32 id = 1;
+  string name = 2;
+  int32 userId = 3;
+  string userName = 4;
+  int32 durationInSeconds = 5;
+}

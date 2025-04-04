@@ -1,0 +1,66 @@
+﻿syntax = "proto3";
+
+option csharp_namespace = "soundy";
+
+package soundy;
+
+import "google/protobuf/empty.proto";
+import "Protos/ProtoEntities/track_metadata.proto";
+
+service TrackProto {
+  rpc UploadTrack (stream TrackChunk) returns (UploadTrackResponse);
+  rpc DownloadTrack (TrackId) returns (stream TrackChunk);
+  rpc GetTrackInfo(TrackId) returns (TrackMetadata);
+  rpc GetTrackList (GetTracksRequest) returns (GetTracksResponse);
+  rpc DeleteTrack (DeleteTrackRequest) returns (MessageResponse);
+}
+
+// Upload / Download
+message TrackChunk {
+  oneof data {
+    TrackMetadata info = 1;
+    bytes chunks = 2;
+  }
+}
+
+message UploadTrackResponse {
+  int32 track_id = 1;
+  string name = 2;
+  bool success = 3;
+  string message = 4;
+}
+
+// GetTrackList
+message GetTracksRequest {
+    string trackName = 1;
+    int32 pageNumber = 2;
+    int32 pageSize = 3;
+}
+
+message GetTracksResponse {
+    int32 totalCount = 1;
+    int32 pageNumber = 2;
+    int32 pageSize = 3;
+    repeated TrackMetadata tracks = 4;
+}
+
+// DeleteTrack
+message DeleteTrackRequest {
+  int32 trackId = 1;
+}
+
+// Common
+
+message AudioChunk {
+  bytes data = 1;
+  bool isFinalChunk = 2;
+}
+
+message MessageResponse{
+  bool success = 1;
+  string message = 2;
+}
+
+message TrackId{
+	int32 id = 1;
+}

@@ -1,0 +1,77 @@
+networks:
+  app-network:
+    driver: bridge
+
+services:
+#  api_gateway:
+#    build:
+#      context: .
+#      dockerfile: ApiGateway/Soundy.ApiGateway/Dockerfile
+#    ports:
+#      - "8080:8080"
+#    container_name: api_gateway
+#    depends_on:
+#      - db
+#    networks:
+#      - app-network
+
+  db: 
+   image: postgres:latest
+   ports:
+     - "5435:5435"
+   environment:
+     POSTGRES_USER: postgres
+     POSTGRES_PASSWORD: admin
+   volumes:
+     - db_data:/var/lib/postgresql/data
+   container_name: db_postgresql
+   networks:
+     - app-network
+   command: -p 5435
+
+  user_service:
+    build:
+      context: .
+      dockerfile: Services/UserService/Soundy.UserService/Dockerfile
+    environment:
+      - USER_SERVICE_KESTREL_PORT=${USER_SERVICE_KESTREL_PORT}
+      - USER_SERVICE_POSTGRES_HOST=${USER_SERVICE_POSTGRES_HOST}
+      - USER_SERVICE_POSTGRES_DB=${USER_SERVICE_POSTGRES_DB}
+      - USER_SERVICE_POSTGRES_PORT=${USER_SERVICE_POSTGRES_PORT} 
+      - USER_SERVICE_POSTGRES_USER=${USER_SERVICE_POSTGRES_USER} 
+      - USER_SERVICE_POSTGRES_PASSWORD=${USER_SERVICE_POSTGRES_PASSWORD} 
+    ports:
+      - "5005:5005"
+    container_name: user_service
+    depends_on:
+      - users_db_pgsql
+        # condition: service_healthy
+    networks:
+      - app-network
+
+  users_db_pgsql: 
+    image: postgres:latest
+    expose:
+      - "5433"
+    ports:
+      - "5433:5433"
+    environment:
+      - POSTGRES_DB=${USER_SERVICE_POSTGRES_DB}
+      - POSTGRES_USER=${USER_SERVICE_POSTGRES_USER}
+      - POSTGRES_PASSWORD=${USER_SERVICE_POSTGRES_PASSWORD}
+    volumes:
+      - users_db_pgsql_data:/var/lib/postgresql/data
+    # healthcheck:
+    #   test: [ "CMD-SHELL", "pg_isready -U ${USER_SERVICE_POSTGRES_USER} -d ${USER_SERVICE_POSTGRES_DB}" ]
+    #   interval: 5s
+    #   timeout: 5s
+    #   retries: 5
+    restart: always
+    container_name: users_db_pgsql
+    command: -p 5433
+    networks:
+      - app-network
+
+volumes:
+  db_data:
+  users_db_pgsql_data:

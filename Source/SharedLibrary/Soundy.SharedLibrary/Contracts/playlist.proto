@@ -1,0 +1,77 @@
+﻿syntax = "proto3";
+
+option csharp_namespace = "soundy";
+
+package soundy;
+
+import "Protos/ProtoEntities/track_metadata.proto";
+//import "track_metadata.proto";
+
+service PlaylistProto {
+  rpc CreatePlaylist (CreatePlaylistRequest) returns (CreatePlaylistResponse);
+  rpc AddTrackToPlaylist (AddTrackRequest) returns (AddTrackResponse);
+  rpc DeleteTrackFromPlaylist (DeleteTrackReq) returns (DeleteTrackRes);
+  rpc GetPlaylist (PlaylistId) returns (GetPlaylistResponse);
+  rpc DeletePlaylist (PlaylistId) returns (GetPlaylistResponse);
+  rpc GetTrackList (GetTrackListRequest) returns (GetTrackListResponse);
+}
+
+// Create Playlist
+message CreatePlaylistRequest {
+  string name = 1;
+  int32 userId = 2;
+}
+
+message CreatePlaylistResponse {
+	bool isSuccess = 1;
+	int32 id = 2;
+	string name = 3;
+}
+
+// Add Track
+message AddTrackRequest {
+  int32 playlistId = 1;
+  int32 trackId = 2;
+}
+
+message AddTrackResponse {
+  bool success = 1;
+}
+
+// Delete Track
+message DeleteTrackReq {
+  int32 playlistId = 1;
+  int32 trackId = 2;
+}
+
+message DeleteTrackRes {
+  bool success = 1;
+}
+
+// Get Playlist
+message GetPlaylistResponse {
+	bool isSuccess = 1;
+	int32 playlistId = 2;
+	string playlistName = 3;
+  int32 trackCount = 4;
+}
+
+// Get TrackList
+message GetTrackListRequest{
+  int32 playlistId = 1;
+  int32 pageNumber = 2;
+  int32 pageSize = 3;
+}
+
+message GetTrackListResponse {
+  int32 totalCount = 1;
+  int32 pageNumber = 2;
+  int32 pageSize = 3;
+  repeated TrackMetadata tracks = 4;
+}
+
+// Common
+
+message PlaylistId{
+  int32 id = 1;
+}

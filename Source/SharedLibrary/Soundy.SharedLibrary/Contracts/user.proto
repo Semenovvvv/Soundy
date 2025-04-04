@@ -1,0 +1,74 @@
+﻿syntax = "proto3";
+
+option csharp_namespace = "Soundy.UserService";
+
+package user;
+
+service UserGrpcService {
+  rpc GetUserById (GetUserByIdRequest) returns (GetUserResponse);
+  rpc UpdateUserProfile (UpdateUserProfileRequest) returns (OperationResponse);
+  rpc DeleteUser (DeleteUserRequest) returns (OperationResponse);
+  rpc SearchUsers (SearchUsersRequest) returns (SearchUsersResponse);
+}
+
+//======== Requests ========
+message GetUserByIdRequest {
+  string user_id = 1;
+}
+
+message UpdateUserProfileRequest {
+  string user_id = 1;
+  optional string username = 2;
+  optional string email = 3;
+}
+
+message DeleteUserRequest {
+  string user_id = 1;
+}
+
+message SearchUsersRequest {
+  string search_pattern = 1;
+  int32 page_number = 2;
+  int32 page_size = 3;
+}
+
+//======== Responses ========
+message UserData {
+  string id = 1;
+  string login = 2;
+  string email = 3;
+}
+
+message OperationResponse {
+  enum Status {
+    STATUS_UNSPECIFIED = 0;
+    STATUS_SUCCESS = 1;
+    STATUS_FAILED = 2;
+    STATUS_NOT_FOUND = 3;
+    STATUS_INVALID_INPUT = 4;
+    STATUS_CONFLICT = 5;
+  }
+  
+  Status status = 1;
+  string message = 2;
+}
+
+message GetUserResponse {
+  oneof result {
+    UserData user = 1;
+    OperationResponse error = 2;
+  }
+}
+
+message SearchUsersResponse {
+  repeated UserData users = 1;
+  PaginationInfo pagination = 2;
+  OperationResponse.Status status = 3;
+  string message = 4;
+}
+
+message PaginationInfo {
+  int32 total_count = 1;
+  int32 page_number = 2;
+  int32 page_size = 3;
+}

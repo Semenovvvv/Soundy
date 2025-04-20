@@ -11,7 +11,6 @@
 
 	<ItemGroup>
 		<PackageReference Include="AutoMapper" Version="14.0.0" />
-		<PackageReference Include="AWSSDK.S3" Version="3.7.416.5" />
 		<PackageReference Include="Grpc.AspNetCore" Version="2.57.0" />
 		<PackageReference Include="Microsoft.EntityFrameworkCore" Version="8.0.8" />
 		<PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.21.0" />
@@ -23,6 +22,7 @@
 	</ItemGroup>
 	<ItemGroup>
 		<Protobuf Include="..\..\..\SharedLibrary\Soundy.SharedLibrary\Contracts\track.proto" GrpcServices="Server" />
+		<Protobuf Include="..\..\..\SharedLibrary\Soundy.SharedLibrary\Contracts\playlist.proto" GrpcServices="Server" />
 		<Protobuf Include="..\..\..\SharedLibrary\Soundy.SharedLibrary\Contracts\Models\operation_response.proto" GrpcServices="None" />
 		<Protobuf Include="..\..\..\SharedLibrary\Soundy.SharedLibrary\Contracts\Models\track_metadata.proto" GrpcServices="None" />
 	</ItemGroup>

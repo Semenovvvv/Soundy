@@ -1,6 +1,5 @@
 using Microsoft.AspNetCore.Server.Kestrel.Core;
 using Microsoft.EntityFrameworkCore;
-using Soundy.CatalogService.Configurations;
 using Soundy.CatalogService.Controllers;
 using Soundy.CatalogService.DataAccess;
 using Soundy.CatalogService.Extensions;
@@ -15,10 +14,10 @@ builder.Configuration.AddEnvironmentVariables();
 var configuration = builder.Configuration;
 
 builder.Services.AddGrpc();
-builder.Services.ConfigureS3(builder.Configuration);
-builder.Services.AddAutoMapper(typeof(TrackProfile));
+
+builder.Services.AddAutoMapper(typeof(CatalogServiceMapper));
 builder.Services.AddScoped<ITrackMetadataService, TrackService>();
-builder.Services.AddScoped<ITrackFileService, MinioFileService>();
+builder.Services.AddScoped<IPlaylistService, PlaylistService>();
 
 builder.Services.ConfigureContext(configuration);
 
@@ -46,6 +45,7 @@ using (var scope = app.Services.CreateScope())
 }
 
 app.MapGrpcService<TrackGrpcController>();
+app.MapGrpcService<PlaylistGrpcController>();
 
 app.Run();
  

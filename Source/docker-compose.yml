@@ -5,36 +5,12 @@ networks:
     driver: bridge
 
 services:
-#  api_gateway:
-#    build:
-#      context: .
-#      dockerfile: ApiGateway/Soundy.ApiGateway/Dockerfile
-#    ports:
-#      - "8080:8080"
-#    container_name: api_gateway
-#    depends_on:
-#      - db
-#    networks:
-#      - app-network
-
-  db: 
-   image: postgres:latest
-   ports:
-     - "5435:5435"
-   environment:
-     POSTGRES_USER: postgres
-     POSTGRES_PASSWORD: admin
-   volumes:
-     - db_data:/var/lib/postgresql/data
-   container_name: db_postgresql
-   networks:
-     - app-network
-   command: -p 5435
-
   user_service:
     build:
-      context: ${USER_SERVICE_PATH}
-      dockerfile: Soundy.UserService/Dockerfile
+      context: .
+      dockerfile: Services/UserService/Soundy.UserService/Dockerfile
+      # context: ${USER_SERVICE_PATH}
+      # dockerfile: Dockerfile
     environment:
       - USER_SERVICE_KESTREL_PORT=${USER_SERVICE_KESTREL_PORT}
       - USER_SERVICE_POSTGRES_HOST=${USER_SERVICE_POSTGRES_HOST}
@@ -47,7 +23,6 @@ services:
     container_name: user_service
     depends_on:
       - user_db_pgsql
-        # condition: service_healthy
     networks:
       - app-network
 
@@ -63,11 +38,6 @@ services:
       - POSTGRES_PASSWORD=${USER_SERVICE_POSTGRES_PASSWORD}
     volumes:
       - user_db_pgsql_data:/var/lib/postgresql/data
-    # healthcheck:
-    #   test: [ "CMD-SHELL", "pg_isready -U ${USER_SERVICE_POSTGRES_USER} -d ${USER_SERVICE_POSTGRES_DB}" ]
-    #   interval: 5s
-    #   timeout: 5s
-    #   retries: 5
     restart: always
     container_name: user_db_pgsql
     command: -p 5433
@@ -76,8 +46,10 @@ services:
 
   catalog_service:
     build:
-      context: ${CATALOG_SERVICE_PATH}
-      dockerfile: Soundy.CatalogService/Dockerfile
+      context: .
+      dockerfile: Services/CatalogService/Soundy.CatalogService/Dockerfile
+      # context: ${CATALOG_SERVICE_PATH}
+      # dockerfile: ./Dockerfile
     environment:
       - CATALOG_SERVICE_KESTREL_PORT=${CATALOG_SERVICE_KESTREL_PORT}
       - CATALOG_SERVICE_POSTGRES_HOST=${CATALOG_SERVICE_POSTGRES_HOST}
@@ -85,40 +57,43 @@ services:
       - CATALOG_SERVICE_POSTGRES_PORT=${CATALOG_SERVICE_POSTGRES_PORT} 
       - CATALOG_SERVICE_POSTGRES_USER=${CATALOG_SERVICE_POSTGRES_USER} 
       - CATALOG_SERVICE_POSTGRES_PASSWORD=${CATALOG_SERVICE_POSTGRES_PASSWORD} 
-      - AWS_SERVICE_URL=${AWS_SERVICE_URL}
-      - AWS_BUCKET_NAME=${AWS_BUCKET_NAME}
-      - AWS_AUTH_REGION=${AWS_AUTH_REGION}
-      - AWS_ACCESS_KEY=${AWS_ACCESS_KEY}
-      - AWS_SECRET_KEY=${AWS_SECRET_KEY}
     ports:
       - "5006:5006"
     container_name: catalog_service
     depends_on:
       - catalog_db_pgsql
-        # condition: service_healthy
     networks:
       - app-network
 
   catalog_db_pgsql: 
     image: postgres:latest
     expose:
-      - "5434"
+      - "5435"
     ports:
-      - "5434:5434"
+      - "5435:5435"
     environment:
       - POSTGRES_DB=${CATALOG_SERVICE_POSTGRES_DB}
       - POSTGRES_USER=${CATALOG_SERVICE_POSTGRES_USER}
       - POSTGRES_PASSWORD=${CATALOG_SERVICE_POSTGRES_PASSWORD}
     volumes:
       - catalog_db_pgsql_data:/var/lib/postgresql/data
-    # healthcheck:
-    #   test: [ "CMD-SHELL", "pg_isready -U ${USER_SERVICE_POSTGRES_USER} -d ${USER_SERVICE_POSTGRES_DB}" ]
-    #   interval: 5s
-    #   timeout: 5s
-    #   retries: 5
     restart: always
     container_name: catalog_db_pgsql
-    command: -p 5434
+    command: -p 5435
+    networks:
+      - app-network
+
+  file_service:
+    build:
+      context: .
+      dockerfile: Services/FileService/Soundy.FileService/Dockerfile
+      # context: ${CATALOG_SERVICE_PATH}
+      # dockerfile: ./Dockerfile
+    environment:
+      - FILE_SERVICE_KESTREL_PORT=${FILE_SERVICE_KESTREL_PORT}
+    ports:
+      - "5007:5007"
+    container_name: file_service
     networks:
       - app-network
 
@@ -129,7 +104,7 @@ services:
       MINIO_ROOT_PASSWORD: minioadmin
     ports:
       - "9000:9000"
-      - "9001:9001"  # web interface
+      - "9001:9001"
     command: server --console-address ":9001" /data
     volumes:
       - minio_data:/data
@@ -137,7 +112,6 @@ services:
       - app-network
 
 volumes:
-  db_data:
   user_db_pgsql_data:
   catalog_db_pgsql_data:
   minio_data:

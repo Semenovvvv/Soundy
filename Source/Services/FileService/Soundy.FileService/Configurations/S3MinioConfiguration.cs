@@ -3,7 +3,7 @@ using Amazon.S3;
 using Amazon.S3.Model;
 using Soundy.SharedLibrary.S3;
 
-namespace Soundy.CatalogService.Configurations
+namespace Soundy.FileService.Configurations
 {
     public static class S3MinioConfiguration
     {

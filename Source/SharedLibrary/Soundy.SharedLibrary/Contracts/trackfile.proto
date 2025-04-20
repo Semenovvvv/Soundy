@@ -1,0 +1,25 @@
+syntax = "proto3";
+
+
+service TrackFileGrpcService {
+  rpc UploadTrackFile(stream UploadTrackFileRequest) returns (UploadTrackFileResponse);
+  rpc DownloadTrackFile(DownloadTrackFileRequest) returns (stream DownloadTrackFileResponse);
+}
+
+
+message UploadTrackFileRequest {
+	string track_id = 1;
+	bytes chunk = 2;
+}
+
+message UploadTrackFileResponse {
+  string file_url = 1;
+}
+
+message DownloadTrackFileRequest {
+  string track_id = 1;
+}
+
+message DownloadTrackFileResponse {
+  bytes chunk = 1;
+}

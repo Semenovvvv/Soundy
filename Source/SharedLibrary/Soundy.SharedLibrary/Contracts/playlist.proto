@@ -1,13 +1,11 @@
 ﻿syntax = "proto3";
 
-option csharp_namespace = "soundy";
+import "Models/operation_response.proto";
+import "Models/track_metadata.proto";
 
-package soundy;
+import "google/protobuf/timestamp.proto";
 
-import "Protos/ProtoEntities/track_metadata.proto";
-//import "track_metadata.proto";
-
-service PlaylistProto {
+service PlaylistGrpcService {
   rpc CreatePlaylist (CreatePlaylistRequest) returns (CreatePlaylistResponse);
   rpc AddTrackToPlaylist (AddTrackRequest) returns (AddTrackResponse);
   rpc DeleteTrackFromPlaylist (DeleteTrackReq) returns (DeleteTrackRes);
@@ -19,12 +17,12 @@ service PlaylistProto {
 // Create Playlist
 message CreatePlaylistRequest {
   string name = 1;
-  int32 userId = 2;
+  string authorId = 2;
 }
 
 message CreatePlaylistResponse {
-	bool isSuccess = 1;
-	int32 id = 2;
+	string id = 1;
+	string authorId = 2;
 	string name = 3;
 }
 

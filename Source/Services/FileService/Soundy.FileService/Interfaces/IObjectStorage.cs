@@ -1,6 +1,6 @@
 ﻿using Soundy.SharedLibrary.Common.Response;
 
-namespace Soundy.CatalogService.Interfaces
+namespace Soundy.FileService.Interfaces
 {
     public interface IObjectStorage
     {

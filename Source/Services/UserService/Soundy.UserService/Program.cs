@@ -20,7 +20,7 @@ try
 
     builder.WebHost.ConfigureKestrel(options =>
     {
-        var hostPort = configuration.GetValue<int>("USER_SERVICE_KESTREL_PORT", 5005);
+        var hostPort = configuration.GetValue("USER_SERVICE_KESTREL_PORT", 5005);
         options.ListenAnyIP(hostPort, listenOptions => listenOptions.Protocols = HttpProtocols.Http2);
     });
 

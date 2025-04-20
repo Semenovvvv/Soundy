@@ -1,66 +1,97 @@
 ﻿syntax = "proto3";
 
-option csharp_namespace = "soundy";
+import "Models/operation_response.proto";
+import "Models/track_metadata.proto";
 
-package soundy;
+import "google/protobuf/timestamp.proto";
 
-import "google/protobuf/empty.proto";
-import "Protos/ProtoEntities/track_metadata.proto";
-
-service TrackProto {
-  rpc UploadTrack (stream TrackChunk) returns (UploadTrackResponse);
-  rpc DownloadTrack (TrackId) returns (stream TrackChunk);
-  rpc GetTrackInfo(TrackId) returns (TrackMetadata);
-  rpc GetTrackList (GetTracksRequest) returns (GetTracksResponse);
-  rpc DeleteTrack (DeleteTrackRequest) returns (MessageResponse);
+service TrackGrpcService {
+  // Metadata
+  rpc CreateTrack(CreateTrackRequest) returns (TrackResponse);
+  rpc GetTrack(GetTrackRequest) returns (TrackResponse);
+  rpc UpdateTrack(UpdateTrackRequest) returns (TrackResponse);
+  rpc DeleteTrack(DeleteTrackRequest) returns (DeleteTrackResponse);
+  rpc ListTracks(ListTracksRequest) returns (stream TrackResponse);
+  
+  // AudioFile
+  rpc UploadTrackFile(stream UploadTrackFileRequest) returns (UploadTrackFileResponse);
+  rpc DownloadTrackFile(DownloadTrackFileRequest) returns (stream DownloadTrackFileResponse);
+  
+  // 
+  rpc SearchTracks(SearchTracksRequest) returns (stream TrackResponse);
+  rpc GetTracksByPlaylist(GetTracksByPlaylistRequest) returns (stream TrackResponse);
+  rpc GetTracksByUser(GetTracksByUserRequest) returns (stream TrackResponse);
 }
 
-// Upload / Download
-message TrackChunk {
+// Сообщения для работы с метаданными
+message TrackResponse {
+  string id = 1;
+  string title = 2;
+  string user_id = 3;
+  string playlist_id = 4;
+  int32 duration = 5;
+  google.protobuf.Timestamp upload_date = 6;
+}
+
+message CreateTrackRequest {
+  string title = 1;
+  string user_id = 2;
+  string playlist_id = 3;
+  int32 duration = 4;
+}
+
+message GetTrackRequest {
+  string id = 1;
+}
+
+message UpdateTrackRequest {
+  string id = 1;
+  optional string title = 2;
+  optional string playlist_id = 3;
+}
+
+message DeleteTrackRequest {
+  string id = 1;
+}
+
+message DeleteTrackResponse {
+  bool success = 1;
+}
+
+message ListTracksRequest {
+  int32 page = 1;
+  int32 page_size = 2;
+}
+
+// Сообщения для работы с файлами
+message UploadTrackFileRequest {
   oneof data {
-    TrackMetadata info = 1;
-    bytes chunks = 2;
+    string track_id = 1;  // Только в первом сообщении
+    bytes chunk = 2;      // Последующие сообщения содержат байты
   }
 }
 
-message UploadTrackResponse {
-  int32 track_id = 1;
-  string name = 2;
-  bool success = 3;
-  string message = 4;
+message UploadTrackFileResponse {
+  string file_url = 1;  // Путь к файлу в MinIO (например, "s3://music/{track_id}.mp3")
 }
 
-// GetTrackList
-message GetTracksRequest {
-    string trackName = 1;
-    int32 pageNumber = 2;
-    int32 pageSize = 3;
+message DownloadTrackFileRequest {
+  string track_id = 1;
 }
 
-message GetTracksResponse {
-    int32 totalCount = 1;
-    int32 pageNumber = 2;
-    int32 pageSize = 3;
-    repeated TrackMetadata tracks = 4;
+message DownloadTrackFileResponse {
+  bytes chunk = 1;
 }
 
-// DeleteTrack
-message DeleteTrackRequest {
-  int32 trackId = 1;
+// Дополнительные сообщения
+message SearchTracksRequest {
+  string query = 1;
 }
 
-// Common
-
-message AudioChunk {
-  bytes data = 1;
-  bool isFinalChunk = 2;
+message GetTracksByPlaylistRequest {
+  string playlist_id = 1;
 }
 
-message MessageResponse{
-  bool success = 1;
-  string message = 2;
-}
-
-message TrackId{
-	int32 id = 1;
+message GetTracksByUserRequest {
+  string user_id = 1;
 }

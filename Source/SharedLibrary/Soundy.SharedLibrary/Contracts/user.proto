@@ -1,8 +1,7 @@
 ﻿syntax = "proto3";
 
-option csharp_namespace = "Soundy.UserService";
-
-package user;
+import "Models/operation_response.proto";
+import "Models/pagination_info.proto";
 
 service UserGrpcService {
   rpc GetUserById (GetUserByIdRequest) returns (GetUserResponse);
@@ -39,20 +38,6 @@ message UserData {
   string email = 3;
 }
 
-message OperationResponse {
-  enum Status {
-    STATUS_UNSPECIFIED = 0;
-    STATUS_SUCCESS = 1;
-    STATUS_FAILED = 2;
-    STATUS_NOT_FOUND = 3;
-    STATUS_INVALID_INPUT = 4;
-    STATUS_CONFLICT = 5;
-  }
-  
-  Status status = 1;
-  string message = 2;
-}
-
 message GetUserResponse {
   oneof result {
     UserData user = 1;
@@ -65,10 +50,4 @@ message SearchUsersResponse {
   PaginationInfo pagination = 2;
   OperationResponse.Status status = 3;
   string message = 4;
-}
-
-message PaginationInfo {
-  int32 total_count = 1;
-  int32 page_number = 2;
-  int32 page_size = 3;
 }

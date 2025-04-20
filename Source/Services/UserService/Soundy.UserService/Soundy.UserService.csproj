@@ -11,6 +11,8 @@
 
 	<ItemGroup>
 		<Protobuf Include="..\..\..\SharedLibrary\Soundy.SharedLibrary\Contracts\user.proto" GrpcServices="Server" />
+		<Protobuf Include="..\..\..\SharedLibrary\Soundy.SharedLibrary\Contracts\Models\operation_response.proto" GrpcServices="None" />
+		<Protobuf Include="..\..\..\SharedLibrary\Soundy.SharedLibrary\Contracts\Models\pagination_info.proto" GrpcServices="None" />
 	</ItemGroup>
 
 	<ItemGroup>

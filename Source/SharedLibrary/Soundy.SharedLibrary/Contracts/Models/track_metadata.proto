@@ -1,0 +1,12 @@
+﻿syntax = "proto3";
+
+import "google/protobuf/timestamp.proto";
+
+message TrackMetadata {
+  string id = 1;
+  string title = 2;
+  string user_id = 3;
+  string playlist_id = 4;
+  int32 duration_seconds = 5;
+  google.protobuf.Timestamp upload_date = 6;
+}

@@ -1,3 +1,5 @@
+# encoding: utf-8    
+
 networks:
   app-network:
     driver: bridge
@@ -31,8 +33,8 @@ services:
 
   user_service:
     build:
-      context: .
-      dockerfile: Services/UserService/Soundy.UserService/Dockerfile
+      context: ${USER_SERVICE_PATH}
+      dockerfile: Soundy.UserService/Dockerfile
     environment:
       - USER_SERVICE_KESTREL_PORT=${USER_SERVICE_KESTREL_PORT}
       - USER_SERVICE_POSTGRES_HOST=${USER_SERVICE_POSTGRES_HOST}
@@ -44,12 +46,12 @@ services:
       - "5005:5005"
     container_name: user_service
     depends_on:
-      - users_db_pgsql
+      - user_db_pgsql
         # condition: service_healthy
     networks:
       - app-network
 
-  users_db_pgsql: 
+  user_db_pgsql: 
     image: postgres:latest
     expose:
       - "5433"
@@ -60,18 +62,82 @@ services:
       - POSTGRES_USER=${USER_SERVICE_POSTGRES_USER}
       - POSTGRES_PASSWORD=${USER_SERVICE_POSTGRES_PASSWORD}
     volumes:
-      - users_db_pgsql_data:/var/lib/postgresql/data
+      - user_db_pgsql_data:/var/lib/postgresql/data
     # healthcheck:
     #   test: [ "CMD-SHELL", "pg_isready -U ${USER_SERVICE_POSTGRES_USER} -d ${USER_SERVICE_POSTGRES_DB}" ]
     #   interval: 5s
     #   timeout: 5s
     #   retries: 5
     restart: always
-    container_name: users_db_pgsql
+    container_name: user_db_pgsql
     command: -p 5433
+    networks:
+      - app-network
+
+  catalog_service:
+    build:
+      context: ${CATALOG_SERVICE_PATH}
+      dockerfile: Soundy.CatalogService/Dockerfile
+    environment:
+      - CATALOG_SERVICE_KESTREL_PORT=${CATALOG_SERVICE_KESTREL_PORT}
+      - CATALOG_SERVICE_POSTGRES_HOST=${CATALOG_SERVICE_POSTGRES_HOST}
+      - CATALOG_SERVICE_POSTGRES_DB=${CATALOG_SERVICE_POSTGRES_DB}
+      - CATALOG_SERVICE_POSTGRES_PORT=${CATALOG_SERVICE_POSTGRES_PORT} 
+      - CATALOG_SERVICE_POSTGRES_USER=${CATALOG_SERVICE_POSTGRES_USER} 
+      - CATALOG_SERVICE_POSTGRES_PASSWORD=${CATALOG_SERVICE_POSTGRES_PASSWORD} 
+      - AWS_SERVICE_URL=${AWS_SERVICE_URL}
+      - AWS_BUCKET_NAME=${AWS_BUCKET_NAME}
+      - AWS_AUTH_REGION=${AWS_AUTH_REGION}
+      - AWS_ACCESS_KEY=${AWS_ACCESS_KEY}
+      - AWS_SECRET_KEY=${AWS_SECRET_KEY}
+    ports:
+      - "5006:5006"
+    container_name: catalog_service
+    depends_on:
+      - catalog_db_pgsql
+        # condition: service_healthy
+    networks:
+      - app-network
+
+  catalog_db_pgsql: 
+    image: postgres:latest
+    expose:
+      - "5434"
+    ports:
+      - "5434:5434"
+    environment:
+      - POSTGRES_DB=${CATALOG_SERVICE_POSTGRES_DB}
+      - POSTGRES_USER=${CATALOG_SERVICE_POSTGRES_USER}
+      - POSTGRES_PASSWORD=${CATALOG_SERVICE_POSTGRES_PASSWORD}
+    volumes:
+      - catalog_db_pgsql_data:/var/lib/postgresql/data
+    # healthcheck:
+    #   test: [ "CMD-SHELL", "pg_isready -U ${USER_SERVICE_POSTGRES_USER} -d ${USER_SERVICE_POSTGRES_DB}" ]
+    #   interval: 5s
+    #   timeout: 5s
+    #   retries: 5
+    restart: always
+    container_name: catalog_db_pgsql
+    command: -p 5434
+    networks:
+      - app-network
+
+  minio:
+    image: minio/minio:latest
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin
+    ports:
+      - "9000:9000"
+      - "9001:9001"  # web interface
+    command: server --console-address ":9001" /data
+    volumes:
+      - minio_data:/data
     networks:
       - app-network
 
 volumes:
   db_data:
-  users_db_pgsql_data:
+  user_db_pgsql_data:
+  catalog_db_pgsql_data:
+  minio_data:

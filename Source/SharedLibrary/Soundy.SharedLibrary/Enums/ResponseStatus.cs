@@ -16,6 +16,8 @@
         /// <summary> Конфликт (например, дубликат) </summary> 
         Conflict,
         /// <summary> Ошибка сервера (исключение) </summary> 
-        InternalError
+        InternalError,
+        /// <summary> Ошибка внешних сервисов (исключение) </summary> 
+        ExternalError
     }
 }

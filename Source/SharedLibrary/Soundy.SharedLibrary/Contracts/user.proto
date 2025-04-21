@@ -4,50 +4,70 @@ import "Models/operation_response.proto";
 import "Models/pagination_info.proto";
 
 service UserGrpcService {
-  rpc GetUserById (GetUserByIdRequest) returns (GetUserResponse);
-  rpc UpdateUserProfile (UpdateUserProfileRequest) returns (OperationResponse);
-  rpc DeleteUser (DeleteUserRequest) returns (OperationResponse);
-  rpc SearchUsers (SearchUsersRequest) returns (SearchUsersResponse);
+    rpc CreateUser (CreateUserRequest) returns (CreateUserResponse);
+    rpc GetUserById (GetUserByIdRequest) returns (GetUserByIdResponse);
+    rpc UpdateUser (UpdateUserRequest) returns (UpdateUserResponse);
+    rpc DeleteUser (DeleteUserRequest) returns (DeleteUserResponse);
+    rpc SearchUsers (SearchUsersRequest) returns (SearchUsersResponse);
 }
 
 //======== Requests ========
-message GetUserByIdRequest {
-  string user_id = 1;
+message CreateUserRequest{
+    string username = 1;
+    string email = 3;
 }
 
-message UpdateUserProfileRequest {
-  string user_id = 1;
-  optional string username = 2;
-  optional string email = 3;
+message GetUserByIdRequest {
+    string id = 1;
+}
+
+message UpdateUserRequest {
+    string id = 1;
+    optional string username = 2;
+    optional string email = 3;
 }
 
 message DeleteUserRequest {
-  string user_id = 1;
+    string id = 1;
 }
 
 message SearchUsersRequest {
-  string search_pattern = 1;
-  int32 page_number = 2;
-  int32 page_size = 3;
+    string pattern = 1;
+    int32 page_number = 2;
+    int32 page_size = 3;
 }
 
 //======== Responses ========
-message UserData {
-  string id = 1;
-  string login = 2;
-  string email = 3;
+message CreateUserResponse{
+    string id = 1;
+    string username = 2;
+    string email = 3;
 }
 
-message GetUserResponse {
-  oneof result {
-    UserData user = 1;
-    OperationResponse error = 2;
-  }
+message UpdateUserResponse {
+    string id = 1;
+    string username = 2;
+    string email = 3;
+}
+
+message GetUserByIdResponse {
+    string id = 1;
+    string username = 2;
+    string email = 3;
+}
+
+message DeleteUserResponse{
+    bool is_success = 1;
 }
 
 message SearchUsersResponse {
-  repeated UserData users = 1;
-  PaginationInfo pagination = 2;
-  OperationResponse.Status status = 3;
-  string message = 4;
+    repeated UserData users = 1;
+    int32 page_number = 2;
+    int32 page_size = 3;
+}
+
+message UserData{
+    string id = 1;
+    string username = 2;
+    string email = 3;
 }

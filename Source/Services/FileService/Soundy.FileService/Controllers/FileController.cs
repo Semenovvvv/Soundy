@@ -25,7 +25,7 @@ namespace Soundy.FileService.Controllers
         {
             var fileName = string.Empty;
             var tempFile = Path.GetTempFileName();
-            string trackId = null;
+            string? trackId = null;
             await using (var stream = new FileStream(tempFile, FileMode.Create))
             {
                 var isLastReceived = false;

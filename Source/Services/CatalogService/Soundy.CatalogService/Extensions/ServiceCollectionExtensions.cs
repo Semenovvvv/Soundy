@@ -13,6 +13,8 @@ namespace Soundy.CatalogService.Extensions
             const string user = "CATALOG_SERVICE_POSTGRES_USER";
             const string password = "CATALOG_SERVICE_POSTGRES_PASSWORD";
 
+            //var connectionString = configuration.GetConnectionString("DefaultConnection");
+            
             var connectionString = $"Host={configuration[host] ?? throw new ArgumentNullException(host)};" +
                                    $"Port={configuration[port] ?? throw new ArgumentNullException(port)};" +
                                    $"Database={configuration[db] ?? throw new ArgumentNullException(db)};" +

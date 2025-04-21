@@ -3,6 +3,8 @@ using Microsoft.EntityFrameworkCore;
 using Soundy.UserService.Controllers;
 using Soundy.UserService.DataAccess;
 using Soundy.UserService.Extensions;
+using Soundy.UserService.Interfaces;
+using Soundy.UserService.Mappers;
 using Soundy.UserService.Services;
 
 try
@@ -14,8 +16,8 @@ try
     var configuration = builder.Configuration;
 
     builder.Services.AddGrpc();
-    builder.Services.AddScoped<UserService>();
-
+    builder.Services.AddScoped<IUserService, UserService>();
+    builder.Services.AddAutoMapper(typeof(UserServiceMapper));
     builder.Services.ConfigureContext(configuration);
 
     builder.WebHost.ConfigureKestrel(options =>
@@ -29,11 +31,10 @@ try
     using (var scope = app.Services.CreateScope())
     {
         var services = scope.ServiceProvider;
-        var context = services.GetRequiredService<DatabaseContext>();
-
+        var context = await services.GetRequiredService<IDbContextFactory<DatabaseContext>>().CreateDbContextAsync();
         try
         {
-            context.Database.Migrate();
+            await context.Database.MigrateAsync();
         }
         catch (Exception ex)
         {

@@ -1,174 +1,54 @@
-﻿using Grpc.Core;
-using Soundy.SharedLibrary.Enums;
+﻿using AutoMapper;
+using Grpc.Core;
 using Soundy.UserService.Dto;
+using Soundy.UserService.Interfaces;
 
 namespace Soundy.UserService.Controllers
 {
     public class UserGrpcController : UserGrpcService.UserGrpcServiceBase
     {
-        private readonly Services.UserService _userService;
-        private readonly ILogger<UserGrpcController> _logger;
+        private readonly IUserService _userService;
+        private readonly IMapper _mapper;
 
-        public UserGrpcController(Services.UserService userService, ILogger<UserGrpcController> logger)
+        public UserGrpcController(IUserService userService, IMapper mapper)
         {
             _userService = userService;
-            _logger = logger;
+            _mapper = mapper;
         }
 
-        public override async Task<GetUserResponse> GetUserById(GetUserByIdRequest request, ServerCallContext context)
+        public override async Task<CreateUserResponse> CreateUser(CreateUserRequest request, ServerCallContext context)
         {
-            try
-            {
-                var response = await _userService.GetUserById(Guid.Parse(request.UserId), context.CancellationToken);
-
-                if (response is { Status: ResponseStatus.Success, Data: not null })
-                {
-                    return new GetUserResponse
-                    {
-                        User = new UserData()
-                        {
-                            Id = response.Data.Id.ToString(),
-                            Login = response.Data.Login,
-                            Email = response.Data.Email
-                        }
-                    };
-                }
-
-                return new GetUserResponse
-                {
-                    Error = new OperationResponse
-                    {
-                        Status = MapStatus(response.Status),
-                        Message = response.Message ?? string.Empty
-                    }
-                };
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error in GetUserById");
-                return new GetUserResponse
-                {
-                    Error = new OperationResponse
-                    {
-                        Status = OperationResponse.Types.Status.Failed,
-                        Message = "Internal server error"
-                    }
-                };
-            }
+            var dto = _mapper.Map<CreateUserRequestDto>(request);
+            var response = await _userService.CreateUserAsync(dto, context.CancellationToken);
+            return _mapper.Map<CreateUserResponse>(response);
         }
 
-        public override async Task<OperationResponse> UpdateUserProfile(UpdateUserProfileRequest request, ServerCallContext context)
+        public override async Task<GetUserByIdResponse> GetUserById(GetUserByIdRequest request, ServerCallContext context)
         {
-            try
-            {
-                var dto = new UpdateUserDto
-                {
-                    Username = request.Username,
-                    Email = request.Email
-                };
-
-                var response = await _userService.UpdateUserProfile(Guid.Parse(request.UserId), dto, context.CancellationToken);
-
-                return new OperationResponse
-                {
-                    Status = MapStatus(response.Status),
-                    Message = response.Message ?? string.Empty
-                };
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error in UpdateUserProfile");
-                return new OperationResponse
-                {
-                    Status = OperationResponse.Types.Status.Failed,
-                    Message = "Internal server error"
-                };
-            }
+            var dto = _mapper.Map<GetUserByIdRequestDto>(request);
+            var response = await _userService.GetUserById(dto);
+            return _mapper.Map<GetUserByIdResponse>(response);
         }
 
-        public override async Task<OperationResponse> DeleteUser(DeleteUserRequest request, ServerCallContext context)
+        public override async Task<UpdateUserResponse> UpdateUser(UpdateUserRequest request, ServerCallContext context)
         {
-            try
-            {
-                var response = await _userService.DeleteUser(Guid.Parse((ReadOnlySpan<char>)request.UserId), context.CancellationToken);
+            var dto = _mapper.Map<UpdateUserRequestDto>(request);
+            var response = await _userService.UpdateUser(dto);
+            return _mapper.Map<UpdateUserResponse>(response);
+        }
 
-                return new OperationResponse
-                {
-                    Status = MapStatus(response.Status),
-                    Message = response.Message ?? string.Empty
-                };
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error in DeleteUser");
-                return new OperationResponse
-                {
-                    Status = OperationResponse.Types.Status.Failed,
-                    Message = "Internal server error"
-                };
-            }
+        public override async Task<DeleteUserResponse> DeleteUser(DeleteUserRequest request, ServerCallContext context)
+        {
+            var dto = _mapper.Map<DeleteUserRequestDto>(request);
+            var response = await _userService.DeleteUser(dto);
+            return _mapper.Map<DeleteUserResponse>(response);
         }
 
         public override async Task<SearchUsersResponse> SearchUsers(SearchUsersRequest request, ServerCallContext context)
         {
-            try
-            {
-                var response = await _userService.GetUsersByName(
-                    request.SearchPattern,
-                    request.PageNumber,
-                    request.PageSize, 
-                    context.CancellationToken);
-
-                if (response.Status != ResponseStatus.Success)
-                {
-                    return new SearchUsersResponse
-                    {
-                        Status = MapStatus(response.Status),
-                        Message = response.Message ?? string.Empty
-                    };
-                }
-
-                var result = new SearchUsersResponse
-                {
-                    Pagination = new PaginationInfo
-                    {
-                        TotalCount = response.TotalCount,
-                        PageNumber = response.PageNumber,
-                        PageSize = response.PageSize
-                    },
-                    Status = OperationResponse.Types.Status.Success
-                };
-
-                result.Users.AddRange(response.Items.Select(user => new UserData
-                {
-                    Id = user.Id.ToString(),
-                    Login = user.Login,
-                    Email = user.Email
-                }));
-
-                return result;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error in SearchUsers");
-                return new SearchUsersResponse
-                {
-                    Status = OperationResponse.Types.Status.Failed,
-                    Message = "Internal server error"
-                };
-            }
-        }
-
-        private static OperationResponse.Types.Status MapStatus(ResponseStatus status)
-        {
-            return status switch
-            {
-                ResponseStatus.Success => OperationResponse.Types.Status.Success,
-                ResponseStatus.NotFound => OperationResponse.Types.Status.NotFound,
-                ResponseStatus.InvalidInput => OperationResponse.Types.Status.InvalidInput,
-                ResponseStatus.Conflict => OperationResponse.Types.Status.Conflict,
-                _ => OperationResponse.Types.Status.Failed,
-            };
+            var dto = _mapper.Map<SearchUsersRequestDto>(request);
+            var response = await _userService.SearchUsers(dto);
+            return _mapper.Map<SearchUsersResponse>(response);
         }
     }
 }

@@ -13,15 +13,15 @@ namespace Soundy.UserService.Extensions
             const string user = "USER_SERVICE_POSTGRES_USER";
             const string password = "USER_SERVICE_POSTGRES_PASSWORD";
 
-            var connectionString = $"Host={configuration[host] ?? throw new ArgumentNullException(host)};" +
-                                   $"Port={configuration[port] ?? throw new ArgumentNullException(port)};" +
+            //var connectionString = configuration.GetConnectionString("DefaultConnection");
+
+            var connectionString = $"Host={configuration[host] ?? throw new ArgumentNullException(host)};" +$"Port={configuration[port] ?? throw new ArgumentNullException(port)};" +
                                    $"Database={configuration[db] ?? throw new ArgumentNullException(db)};" +
                                    $"Username={configuration[user] ?? throw new ArgumentNullException(user)};" +
                                    $"Password={configuration[password] ?? throw new ArgumentNullException(password)}";
 
             services.AddDbContextFactory<DatabaseContext>(optionsBuilder
-                => optionsBuilder
-                    .UseNpgsql(connectionString));
+                => optionsBuilder.UseNpgsql(connectionString));
 
             return services;
         }

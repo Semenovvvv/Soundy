@@ -1,160 +1,139 @@
-﻿using Microsoft.EntityFrameworkCore;
-using Soundy.SharedLibrary.Common.Response;
-using Soundy.SharedLibrary.Enums;
+﻿using Grpc.Core;
+using Microsoft.EntityFrameworkCore;
 using Soundy.UserService.DataAccess;
 using Soundy.UserService.Dto;
 using Soundy.UserService.Entities;
+using Soundy.UserService.Interfaces;
 
 namespace Soundy.UserService.Services
 {
-    public class UserService
+    public class UserService : IUserService
     {
-        private readonly ILogger<UserService> _logger;
         private readonly IDbContextFactory<DatabaseContext> _dbFactory;
 
-        public UserService(
-            IConfiguration configuration,
-            ILogger<UserService> logger,
-            IDbContextFactory<DatabaseContext> dbFactory)
+        public UserService(IDbContextFactory<DatabaseContext> dbFactory)
         {
-            _logger = logger;
             _dbFactory = dbFactory;
         }
 
-        public async Task<Response<Entities.User>> GetUserById(Guid userId, CancellationToken ct = default)
+        public async Task<CreateUserResponseDto> CreateUserAsync(CreateUserRequestDto dto, CancellationToken ct = default)
         {
-            try
+            var user = new User()
             {
-                await using var dbContext = await _dbFactory.CreateDbContextAsync(ct);
+                Email = dto.Email,
+                UserName = dto.UserName,
+                CreatedAt = DateTime.UtcNow
+            };
 
-                var user = await dbContext.Users
-                    .AsNoTracking()
-                    .FirstOrDefaultAsync(u => u.Id == userId, cancellationToken: ct);
+            await using var dbContext = await _dbFactory.CreateDbContextAsync(ct);
 
-                return user is null
-                    ? Response<User>.Fail(ResponseStatus.NotFound, $"User with ID '{userId}' not found.")
-                    : Response<User>.Success(user);
-            }
-            catch (Exception e)
+            if (await dbContext.Users.FirstOrDefaultAsync(x => x.Email == dto.Email, ct) is not null)
+                throw new RpcException(new Status(StatusCode.InvalidArgument, $"User already exists. Email = {dto.Email}"));
+
+            await dbContext.Users.AddAsync(user, ct);
+            await dbContext.SaveChangesAsync(ct);
+
+            return new CreateUserResponseDto()
             {
-                _logger.LogError(e, $"Error fetching user by ID: {userId}");
-                return Response<Entities.User>.Fail(ResponseStatus.InternalError, "An internal server error occurred.");
-            }
+                Id = user.Id,
+                UserName = user.UserName,
+                Email = user.Email
+            };
         }
 
-        public async Task<Response<User>> GetUserByLogin(string login, CancellationToken ct = default)
+        public async Task<GetUserByIdResponseDto> GetUserById(GetUserByIdRequestDto dto, CancellationToken ct = default)
         {
-            if (string.IsNullOrWhiteSpace(login))
-            {
-                return Response<User>.Fail(ResponseStatus.InvalidInput, "Login cannot be empty.");
-            }
+            await using var dbContext = await _dbFactory.CreateDbContextAsync(ct);
 
-            try
-            {
-                await using var dbContext = await _dbFactory.CreateDbContextAsync(ct);
+            var user = await dbContext.Users
+                .AsNoTracking()
+                .FirstOrDefaultAsync(u => u.Id == dto.Id, cancellationToken: ct);
 
-                var user = await dbContext.Users
-                    .AsNoTracking()
-                    .FirstOrDefaultAsync(u => u.Login == login, cancellationToken: ct);
+            if (user is null)
+                throw new RpcException(new Status(StatusCode.NotFound, $"User not found. Id = {dto.Id}"));
 
-                return user == null
-                    ? Response<User>.Fail(ResponseStatus.NotFound, $"User '{login}' not found.")
-                    : Response<User>.Success(user);
-            }
-            catch (Exception e)
+            return new GetUserByIdResponseDto()
             {
-                _logger.LogError(e, $"Error fetching user by login: {login}");
-                return Response<User>.Fail(ResponseStatus.InternalError, "Internal server error.");
-            }
+                Id = user.Id,
+                UserName = user.UserName,
+                Email = user.Email
+            };
         }
 
-        public async Task<Response> UpdateUserProfile(Guid userId, UpdateUserDto dto, CancellationToken ct = default)
+        public async Task<UpdateUserResponseDto> UpdateUser(UpdateUserRequestDto dto, CancellationToken ct = default)
         {
-            try
+            await using var dbContext = await _dbFactory.CreateDbContextAsync(ct);
+
+            var user = await dbContext.Users.FirstOrDefaultAsync(x => x.Id == dto.Id, cancellationToken: ct);
+            if (user is null)
+                throw new RpcException(new Status(StatusCode.NotFound, $"User not found. Id = {dto.Id}"));
+
+            if (string.IsNullOrEmpty(dto.Email) || string.IsNullOrEmpty(dto.UserName))
+                throw new RpcException(new Status(StatusCode.InvalidArgument, $"Arguments null"));
+
+            user.UserName = dto.UserName;
+            user.Email = dto.Email;
+
+            await dbContext.SaveChangesAsync(ct);
+
+            return new UpdateUserResponseDto()
             {
-                await using var dbContext = await _dbFactory.CreateDbContextAsync(ct);
-
-                var user = await dbContext.Users.FirstOrDefaultAsync(x => x.Id == userId, cancellationToken: ct);
-                if (user == null)
-                    return Response.Fail(ResponseStatus.NotFound, "User not found");
-
-                if (dto.Email == null)
-                    return Response.Fail(ResponseStatus.InvalidInput, "Invalid email format");
-
-                user.Login = dto.Username ?? user.Login;
-                user.Email = dto.Email ?? user.Email;
-
-                await dbContext.SaveChangesAsync(ct);
-
-                return Response.Success();
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, $"Error updating user profile {userId}");
-                return Response.Fail(ResponseStatus.InternalError, "Internal server error");
-            }
+                Id = user.Id,
+                Email = user.Email,
+                UserName = user.UserName
+            };
         }
 
-        public async Task<Response> DeleteUser(Guid userId, CancellationToken ct = default)
+        public async Task<DeleteUserResponseDto> DeleteUser(DeleteUserRequestDto dto, CancellationToken ct = default)
         {
-            try
+            await using var dbContext = await _dbFactory.CreateDbContextAsync(ct);
+            var user = await dbContext.Users.FirstOrDefaultAsync(x => x.Id == dto.Id, cancellationToken: ct);
+
+            if (user == null)
+                throw new RpcException(new Status(StatusCode.NotFound, $"User not found. Id = {dto.Id}"));
+
+            var a = await dbContext.Users.Where(x => x.Id == dto.Id).ExecuteDeleteAsync(ct);
+
+            await dbContext.SaveChangesAsync(ct);
+
+            return new DeleteUserResponseDto()
             {
-                await using var dbContext = await _dbFactory.CreateDbContextAsync(ct);
-                var user = await dbContext.Users.FirstOrDefaultAsync(x => x.Id == userId, cancellationToken: ct);
-
-                if (user == null)
-                    return Response.Fail(ResponseStatus.NotFound, "User not found");
-
-                //var result = await dbContext.Users.ExecuteDeleteAsync(user, );  DeleteAsync(user);
-
-                var a = await dbContext.Users.Where(x => x.Id == userId).ExecuteDeleteAsync(ct);
-
-                await dbContext.SaveChangesAsync(ct);
-
-                return Response.Success();
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, $"Error deleting user {userId}");
-                return Response.Fail(ResponseStatus.InternalError, "Internal server error");
-            }
+                IsSuccess = true
+            };
         }
 
-        public async Task<PaginatedResponse<User>> GetUsersByName(
-            string userNamePattern,
-            int pageNumber,
-            int pageSize, 
-            CancellationToken ct = default)
+        public async Task<SearchUsersResponseDto> SearchUsers(SearchUsersRequestDto dto, CancellationToken ct = default)
         {
-            try
+            if (string.IsNullOrWhiteSpace(dto.Pattern))
+                throw new RpcException(new Status(StatusCode.InvalidArgument, $"Pattern is empty"));
+
+            if (dto.PageSize < 1 || dto.PageNumber < 1)
+                throw new RpcException(new Status(StatusCode.InvalidArgument, $"Invalid pagination parameters"));
+
+            await using var dbContext = await _dbFactory.CreateDbContextAsync(ct);
+
+            var query = dbContext.Users
+                .AsNoTracking()
+                .Where(user => EF.Functions.Like(user.UserName, $"%{dto.Pattern}%"));
+
+            var users = await query
+                .OrderBy(u => u.UserName)
+                .Skip((dto.PageNumber - 1) * dto.PageSize)
+                .Take(dto.PageSize)
+                .Select(x => new UserDto()
+                {
+                    Id = x.Id,
+                    Email = x.Email,
+                    UserName = x.UserName
+                })
+                .ToListAsync(ct);
+
+            return new SearchUsersResponseDto()
             {
-                if (string.IsNullOrWhiteSpace(userNamePattern))
-                    return PaginatedResponse<User>.Fail(ResponseStatus.InvalidInput, "Search pattern cannot be empty");
-
-                if (pageNumber < 1 || pageSize < 1)
-                    return PaginatedResponse<User>.Fail(ResponseStatus.InvalidInput, "Invalid pagination parameters");
-
-                await using var dbContext = await _dbFactory.CreateDbContextAsync(ct);
-
-                var query = dbContext.Users
-                    .AsNoTracking()
-                    .Where(user => EF.Functions.Like(user.Login, $"%{userNamePattern}%"));
-
-                var totalRecords = await query.CountAsync(ct);
-
-                var users = await query
-                    .OrderBy(u => u.Login)
-                    .Skip((pageNumber - 1) * pageSize)
-                    .Take(pageSize)
-                    .ToListAsync(ct);
-
-                return PaginatedResponse<User>.Success(users, totalRecords, pageNumber, pageSize);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, $"Error searching users by name '{userNamePattern}'");
-                return PaginatedResponse<User>.Fail(ResponseStatus.InternalError, "Internal server error");
-            }
+                Users = users,
+                PageNumber = dto.PageNumber,
+                PageSize = dto.PageSize
+            };
         }
     }
 }

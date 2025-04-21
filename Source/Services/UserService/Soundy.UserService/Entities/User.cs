@@ -1,7 +1,4 @@
-﻿using Microsoft.AspNetCore.Identity;
-using Soundy.SharedLibrary.Enums;
-
-namespace Soundy.UserService.Entities
+﻿namespace Soundy.UserService.Entities
 {
     /// <summary>
     /// Пользователь
@@ -11,30 +8,21 @@ namespace Soundy.UserService.Entities
         /// <summary>
         /// Идентификатор
         /// </summary>
-        public required Guid Id { get; set; }
-
-        public required Guid AuthenticationId { get; set; }
+        public Guid Id { get; set; }
 
         /// <summary>
         /// Электронная почта
         /// </summary>
-        public required string Email { get; set; }
+        public string Email { get; set; }
 
         /// <summary>
         /// Логин
         /// </summary>
-        public required string Login { get; set; }
+        public string UserName { get; set; }
 
         /// <summary>
-        /// Телефонный номер
+        /// Дата и время создания
         /// </summary>
-        public required string Phone { get; set; }
-
-        public required DateTime CreatedAt { get; set; }
-
-        /// <summary>
-        /// Роль
-        /// </summary>
-        public required RoleType Role { get; set; }
+        public DateTime CreatedAt { get; set; }
     }
 }

@@ -1,0 +1,10 @@
+﻿syntax = "proto3";
+
+import "google/protobuf/timestamp.proto";
+
+message PlaylistData {
+	string id = 1;
+	string author_id = 2;
+	string name = 3;
+	google.protobuf.Timestamp created_at = 4;
+}

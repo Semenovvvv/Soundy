@@ -4,6 +4,14 @@ namespace Soundy.CatalogService.Interfaces
 {
     public interface IPlaylistService
     {
-        Task<CreatePlaylistResponseDto> CreatePlaylistAsync(CreatePlaylistRequestDto dto, CancellationToken ct = default);
+        Task<CreateResponseDto> CreateAsync(CreateRequestDto dto, CancellationToken ct = default);
+
+        Task<GetByIdResponseDto> GetByIdAsync(GetByIdRequestDto dto, CancellationToken ct = default);
+
+        Task<GetListByAuthorIdResponseDto> GetListByAuthorIdAsync(GetListByAuthorIdRequestDto dto, CancellationToken ct = default);
+
+        Task<UpdateResponseDto> UpdateAsync(UpdateRequestDto dto, CancellationToken ct = default);
+
+        Task<DeleteResponseDto> DeleteAsync(DeleteRequestDto dto, CancellationToken ct = default);
     }
 }

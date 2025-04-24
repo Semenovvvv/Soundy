@@ -1,8 +1,8 @@
 ﻿namespace Soundy.CatalogService.Dto.PlaylistDto
 {
-    public class CreatePlaylistRequestDto
+    public class CreateRequestDto
     {
-        public Guid AuthorId { get; set; }
         public string Name { get; set; }
+        public Guid AuthorId { get; set; }
     }
 }

@@ -9,7 +9,7 @@ using Soundy.UserService.Services;
 
 try
 {
-    var builder = WebApplication.CreateBuilder(args);
+     var builder = WebApplication.CreateBuilder(args);
 
     builder.Configuration.AddEnvironmentVariables();
 

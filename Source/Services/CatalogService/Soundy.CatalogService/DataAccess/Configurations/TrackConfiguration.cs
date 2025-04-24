@@ -18,7 +18,7 @@ namespace Soundy.CatalogService.DataAccess.Configurations
             builder.Property(x => x.UserId).IsRequired();
             builder.Property(x => x.Duration).IsRequired();
             builder.Property(x => x.Title).HasMaxLength(50).IsRequired();
-            builder.Property(x => x.UploadDate).IsRequired();
+            builder.Property(x => x.CreatedAt).IsRequired();
         }
     }
 }

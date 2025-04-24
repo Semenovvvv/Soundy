@@ -1,145 +1,179 @@
-﻿using System.Runtime.CompilerServices;
+﻿using Grpc.Core;
 using Microsoft.EntityFrameworkCore;
 using Soundy.CatalogService.DataAccess;
+using Soundy.CatalogService.Dto.TrackDto;
 using Soundy.CatalogService.Entities;
 using Soundy.CatalogService.Interfaces;
 
 namespace Soundy.CatalogService.Services
 {
-    public class TrackService : ITrackMetadataService
+    public class TrackService : ITrackService
     {
-        private readonly DatabaseContext _dbContext;
+        private readonly IDbContextFactory<DatabaseContext> _dbFactory;
         private readonly ILogger<TrackService> _logger;
 
-        public TrackService(
-            DatabaseContext dbContext,
-            ILogger<TrackService> logger)
+        public TrackService(IDbContextFactory<DatabaseContext> dbFactory, ILogger<TrackService> logger)
         {
-            _dbContext = dbContext;
+            _dbFactory = dbFactory;
             _logger = logger;
         }
 
-        public async Task<Track> CreateTrackAsync(CreateTrackRequest request, CancellationToken ct = default)
+        public async Task<CreateResponseDto> CreateAsync(CreateRequestDto dto, CancellationToken ct = default)
         {
-            var track = new Track
+            await using var dbContext = await _dbFactory.CreateDbContextAsync(ct);
+
+            var track = new Track()
             {
-                Id = Guid.NewGuid(),
-                Title = request.Title,
-                UserId = Guid.Parse(request.UserId),
-                PlaylistId = Guid.Parse(request.PlaylistId),
-                Duration = request.Duration,
-                UploadDate = DateTime.UtcNow
+                PlaylistId = dto.PlaylistId,
+                UserId = dto.UserId,
+                Title = dto.Title,
+                Duration = dto.Duration,
+                CreatedAt = DateTime.UtcNow
             };
 
-            await _dbContext.Tracks.AddAsync(track, ct);
-            await _dbContext.SaveChangesAsync(ct);
+            await dbContext.Tracks.AddAsync(track, ct);
+            await dbContext.SaveChangesAsync(ct);
 
-            return track;
-        }
-
-        public async Task<Track> GetTrackAsync(string id, CancellationToken ct = default)
-        {
-            if (!Guid.TryParse(id, out var trackId))
-                throw new ArgumentException("Invalid track ID format");
-
-            var track = await _dbContext.Tracks
-                .AsNoTracking()
-                .FirstOrDefaultAsync(t => t.Id == trackId, ct);
-
-            return track ?? throw new KeyNotFoundException($"Track {id} not found");
-        }
-
-        public async Task<Track> UpdateTrackAsync(UpdateTrackRequest request, CancellationToken ct = default)
-        {
-            if (!Guid.TryParse(request.Id, out var trackId))
-                throw new ArgumentException("Invalid track ID format");
-
-            var track = await _dbContext.Tracks
-                .FirstOrDefaultAsync(t => t.Id == trackId, ct)
-                ?? throw new KeyNotFoundException($"Track {request.Id} not found");
-
-            if (!string.IsNullOrEmpty(request.Title))
-                track.Title = request.Title;
-
-            if (!string.IsNullOrEmpty(request.PlaylistId))
-                track.PlaylistId = Guid.Parse(request.PlaylistId);
-
-            await _dbContext.SaveChangesAsync(ct);
-            return track;
-        }
-
-        public async Task<bool> DeleteTrackAsync(string id, CancellationToken ct = default)
-        {
-            if (!Guid.TryParse(id, out var trackId))
-                throw new ArgumentException("Invalid track ID format");
-
-            var track = await _dbContext.Tracks
-                .FirstOrDefaultAsync(t => t.Id == trackId, ct);
-
-            if (track == null) return false;
-
-            _dbContext.Tracks.Remove(track);
-            await _dbContext.SaveChangesAsync(ct);
-            return true;
-        }
-
-        public async IAsyncEnumerable<Track> ListTracksAsync(int page, int pageSize, [EnumeratorCancellation] CancellationToken ct = default)
-        {
-            var query = _dbContext.Tracks
-                .AsNoTracking()
-                .OrderBy(t => t.UploadDate)
-                .Skip(page * pageSize)
-                .Take(pageSize);
-
-            await foreach (var track in query.AsAsyncEnumerable().WithCancellation(ct))
+            return new CreateResponseDto
             {
-                yield return track;
-            }
+                Track = new TrackDto()
+                {
+                    Id = track.Id,
+                    PlaylistId = track.PlaylistId,
+                    UserId = track.UserId,
+                    Title = track.Title,
+                    Duration = track.Duration,
+                    CreatedAt = track.CreatedAt
+                }
+            };
         }
 
-        public async IAsyncEnumerable<Track> SearchTracksAsync(string query, [EnumeratorCancellation] CancellationToken ct = default)
+        public async Task<GetByIdResponseDto> GetByIdAsync(GetByIdRequestDto dto, CancellationToken ct = default)
         {
-            var searchQuery = _dbContext.Tracks
-                .AsNoTracking()
-                .Where(t => EF.Functions.ILike(t.Title, $"%{query}%"))
-                .OrderBy(t => t.Title);
+            await using var dbContext = await _dbFactory.CreateDbContextAsync(ct);
 
-            await foreach (var track in searchQuery.AsAsyncEnumerable().WithCancellation(ct))
+            var track = await dbContext.Tracks.FirstOrDefaultAsync(x => x.Id == dto.Id, ct);
+
+            if (track is null)
+                throw new RpcException(new Status(StatusCode.NotFound, $"Track with Id {dto.Id} not found"));
+
+            return new GetByIdResponseDto
             {
-                yield return track;
-            }
+                Track = new TrackDto()
+                {
+                    Id = track.Id,
+                    PlaylistId = track.PlaylistId,
+                    UserId = track.UserId,
+                    Title = track.Title,
+                    Duration = track.Duration,
+                    CreatedAt = track.CreatedAt
+                }
+            };
         }
 
-        public async IAsyncEnumerable<Track> GetTracksByPlaylistAsync(string playlistId, [EnumeratorCancellation] CancellationToken ct = default)
+        public async Task<GetListByPlaylistResponseDto> GetListByPlaylistAsync(GetListByPlaylistRequestDto dto, CancellationToken ct = default)
         {
-            if (!Guid.TryParse(playlistId, out var playlistGuid))
-                throw new ArgumentException("Invalid playlist ID format");
+            await using var dbContext = await _dbFactory.CreateDbContextAsync(ct);
 
-            var query = _dbContext.Tracks
-                .AsNoTracking()
-                .Where(t => t.PlaylistId == playlistGuid)
-                .OrderBy(t => t.UploadDate);
+            var playlist = await dbContext.Playlists.Include(playlist => playlist.Tracks).FirstOrDefaultAsync(x => x.Id == dto.PlaylistId, ct);
 
-            await foreach (var track in query.AsAsyncEnumerable().WithCancellation(ct))
+            if (playlist is null)
+                throw new RpcException(new Status(StatusCode.NotFound, $"Playlist with Id {dto.PlaylistId} not found"));
+
+            var tracks = playlist.Tracks.Select(x => new TrackDto()
             {
-                yield return track;
-            }
+                Id = x.Id,
+                PlaylistId = x.PlaylistId,
+                UserId = x.UserId,
+                Title = x.Title,
+                Duration = x.Duration,
+                CreatedAt = x.CreatedAt
+            }).ToList();
+
+            return new GetListByPlaylistResponseDto()
+            {
+                PlaylistId = dto.PlaylistId,
+                Playlist = new PlaylistDto()
+                {
+                    Id = playlist.Id,
+                    AuthorId = playlist.AuthorId,
+                    Name = playlist.Name,
+                    CreatedAt = playlist.CreatedAt
+                },
+                Tracks = tracks
+            };
         }
 
-        public async IAsyncEnumerable<Track> GetTracksByUserAsync(string userId, [EnumeratorCancellation] CancellationToken ct = default)
+        public async Task<SearchResponseDto> SearchAsync(SearchRequestDto dto, CancellationToken ct = default)
         {
-            if (!Guid.TryParse(userId, out var userGuid))
-                throw new ArgumentException("Invalid user ID format");
+            await using var dbContext = await _dbFactory.CreateDbContextAsync(ct);
 
-            var query = _dbContext.Tracks
-                .AsNoTracking()
-                .Where(t => t.UserId == userGuid)
-                .OrderByDescending(t => t.UploadDate);
+            var tracks = await dbContext.Tracks
+                .Where(t => EF.Functions.Like(t.Title, $"%{dto.Pattern}%"))
+                .Skip((dto.PageNum - 1) * dto.PageSize)
+                .Take(dto.PageSize)
+                .Select(x => new TrackDto()
+                {
+                    Id = x.Id,
+                    PlaylistId = x.PlaylistId,
+                    UserId = x.UserId,
+                    Title = x.Title,
+                    Duration = x.Duration,
+                    CreatedAt = x.CreatedAt
+                })
+                .ToListAsync(ct);
 
-            await foreach (var track in query.AsAsyncEnumerable().WithCancellation(ct))
+            return new SearchResponseDto()
             {
-                yield return track;
-            }
+                Pattern = dto.Pattern,
+                PageNum = dto.PageNum,
+                PageSize = dto.PageSize,
+                Tracks = tracks
+            };
+        }
+
+        public async Task<UpdateResponseDto> UpdateAsync(UpdateRequestDto dto, CancellationToken ct = default)
+        {
+            await using var dbContext = await _dbFactory.CreateDbContextAsync(ct);
+
+            var track = await dbContext.Tracks.FirstOrDefaultAsync(x => x.Id == dto.Id, ct);
+
+            if (track is null)
+                throw new RpcException(new Status(StatusCode.NotFound, $"Track with Id {dto.Id} not found"));
+
+            track.Title = dto.Title;
+
+            await dbContext.SaveChangesAsync(ct);
+            return new UpdateResponseDto()
+            {
+                Track = new TrackDto()
+                {
+                    Id = track.Id,
+                    PlaylistId = track.PlaylistId,
+                    UserId = track.UserId,
+                    Title = track.Title,
+                    Duration = track.Duration,
+                    CreatedAt = track.CreatedAt
+                }
+            };
+        }
+
+        public async Task<DeleteResponseDto> DeleteAsync(DeleteRequestDto dto, CancellationToken ct = default)
+        {
+            await using var dbContext = await _dbFactory.CreateDbContextAsync(ct);
+
+            var track = await dbContext.Tracks.FirstOrDefaultAsync(x => x.Id == dto.Id, ct);
+
+            if (track is null)
+                throw new RpcException(new Status(StatusCode.NotFound, $"Track with Id {dto.Id} not found"));
+
+            await dbContext.Tracks
+                .Where(x => x.Id == dto.Id)
+                .ExecuteDeleteAsync(ct);
+            return new DeleteResponseDto()
+            {
+                Success = true
+            };
         }
     }
 }

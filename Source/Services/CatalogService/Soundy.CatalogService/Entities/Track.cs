@@ -15,10 +15,13 @@
         /// <summary> Идентификатор плейлиста </summary>
         public Guid PlaylistId { get; set; }
 
+        /// <summary> Плейлист </summary>
+        public Playlist Playlist { get; set; }
+
         /// <summary> Длительность в секундах </summary>
         public int Duration { get; set; }
 
         /// <summary> Дата загрузки </summary>
-        public DateTime UploadDate { get; set; }
+        public DateTime CreatedAt { get; set; }
     }
 }

@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace Soundy.CatalogService.Migrations
 {
     /// <inheritdoc />
-    public partial class AddPlaylistEntity : Migration
+    public partial class Initial : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -34,11 +34,17 @@ namespace Soundy.CatalogService.Migrations
                     UserId = table.Column<Guid>(type: "uuid", nullable: false),
                     PlaylistId = table.Column<Guid>(type: "uuid", nullable: false),
                     Duration = table.Column<int>(type: "integer", nullable: false),
-                    UploadDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
+                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Tracks", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Tracks_Playlists_PlaylistId",
+                        column: x => x.PlaylistId,
+                        principalTable: "Playlists",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateIndex(
@@ -61,10 +67,10 @@ namespace Soundy.CatalogService.Migrations
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
-                name: "Playlists");
+                name: "Tracks");
 
             migrationBuilder.DropTable(
-                name: "Tracks");
+                name: "Playlists");
         }
     }
 }

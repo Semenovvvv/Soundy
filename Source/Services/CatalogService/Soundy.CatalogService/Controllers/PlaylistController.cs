@@ -2,6 +2,7 @@
 using Grpc.Core;
 using Soundy.CatalogService.Dto.PlaylistDto;
 using Soundy.CatalogService.Interfaces;
+using Soundy.SharedLibrary.Contracts.Playlist;
 
 namespace Soundy.CatalogService.Controllers
 {
@@ -10,22 +11,39 @@ namespace Soundy.CatalogService.Controllers
         private IPlaylistService _playlistService = playlistService;
         private IMapper _mapper = mapper;
 
-        public override async Task<CreatePlaylistResponse> CreatePlaylist(CreatePlaylistRequest request, ServerCallContext context)
+        public override async Task<CreateResponse> Create(CreateRequest request, ServerCallContext context)
         {
-            try
-            {
-                var requestDto = _mapper.Map<CreatePlaylistRequestDto>(request);
-                var playlist = await _playlistService.CreatePlaylistAsync(requestDto);
-                return _mapper.Map<CreatePlaylistResponse>(playlist);
-            }
-            catch (AutoMapperMappingException ex)
-            {
-                throw new RpcException(new Status(StatusCode.InvalidArgument, ex.Types.ToString() ?? string.Empty));
-            }
-            catch (Exception e)
-            {
-                throw new RpcException(Status.DefaultCancelled);
-            }
+            var requestDto = _mapper.Map<CreateRequestDto>(request);
+            var responseDto = await _playlistService.CreateAsync(requestDto, context.CancellationToken);
+            return _mapper.Map<CreateResponse>(responseDto);
+        }
+
+        public override async Task<GetByIdResponse> GetById(GetByIdRequest request, ServerCallContext context)
+        {
+            var requestDto = _mapper.Map<GetByIdRequestDto>(request);
+            var responseDto = await _playlistService.GetByIdAsync(requestDto, context.CancellationToken);
+            return _mapper.Map<GetByIdResponse>(responseDto);
+        }
+
+        public override async Task<GetListByAuthorIdResponse> GetListByAuthorId(GetListByAuthorIdRequest request, ServerCallContext context)
+        {
+            var requestDto = _mapper.Map<GetListByAuthorIdRequestDto>(request);
+            var responseDto = await _playlistService.GetListByAuthorIdAsync(requestDto, context.CancellationToken);
+            return _mapper.Map<GetListByAuthorIdResponse>(responseDto);
+        }
+
+        public override async Task<UpdateResponse> Update(UpdateRequest request, ServerCallContext context)
+        {
+            var requestDto = _mapper.Map<UpdateRequestDto>(request);
+            var responseDto = await _playlistService.UpdateAsync(requestDto, context.CancellationToken);
+            return _mapper.Map<UpdateResponse>(responseDto);
+        }
+
+        public override async Task<DeleteResponse> Delete(DeleteRequest request, ServerCallContext context)
+        {
+            var requestDto = _mapper.Map<DeleteRequestDto>(request);
+            var responseDto = await _playlistService.DeleteAsync(requestDto, context.CancellationToken);
+            return _mapper.Map<DeleteResponse>(responseDto);
         }
     }
 }

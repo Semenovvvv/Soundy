@@ -15,8 +15,9 @@ var configuration = builder.Configuration;
 
 builder.Services.AddGrpc();
 
-builder.Services.AddAutoMapper(typeof(CatalogServiceMapper));
-builder.Services.AddScoped<ITrackMetadataService, TrackService>();
+builder.Services.AddAutoMapper(typeof(PlaylistMapper));
+builder.Services.AddAutoMapper(typeof(TrackMapper));
+builder.Services.AddScoped<ITrackService, TrackService>();
 builder.Services.AddScoped<IPlaylistService, PlaylistService>();
 
 builder.Services.ConfigureContext(configuration);

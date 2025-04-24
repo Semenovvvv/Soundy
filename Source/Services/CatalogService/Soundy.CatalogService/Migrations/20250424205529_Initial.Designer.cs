@@ -12,8 +12,8 @@ using Soundy.CatalogService.DataAccess;
 namespace Soundy.CatalogService.Migrations
 {
     [DbContext(typeof(DatabaseContext))]
-    [Migration("20250421183108_AddPlaylistEntity")]
-    partial class AddPlaylistEntity
+    [Migration("20250424205529_Initial")]
+    partial class Initial
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -55,6 +55,9 @@ namespace Soundy.CatalogService.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
                     b.Property<int>("Duration")
                         .HasColumnType("integer");
 
@@ -66,9 +69,6 @@ namespace Soundy.CatalogService.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("character varying(50)");
 
-                    b.Property<DateTime>("UploadDate")
-                        .HasColumnType("timestamp with time zone");
-
                     b.Property<Guid>("UserId")
                         .HasColumnType("uuid");
 
@@ -79,6 +79,22 @@ namespace Soundy.CatalogService.Migrations
                     b.HasIndex("UserId");
 
                     b.ToTable("Tracks");
+                });
+
+            modelBuilder.Entity("Soundy.CatalogService.Entities.Track", b =>
+                {
+                    b.HasOne("Soundy.CatalogService.Entities.Playlist", "Playlist")
+                        .WithMany("Tracks")
+                        .HasForeignKey("PlaylistId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Playlist");
+                });
+
+            modelBuilder.Entity("Soundy.CatalogService.Entities.Playlist", b =>
+                {
+                    b.Navigation("Tracks");
                 });
 #pragma warning restore 612, 618
         }

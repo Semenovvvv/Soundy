@@ -1,16 +1,19 @@
-﻿using Soundy.CatalogService.Entities;
+﻿using Soundy.CatalogService.Dto.TrackDto;
 
 namespace Soundy.CatalogService.Interfaces
 {
-    public interface ITrackMetadataService
+    public interface ITrackService
     {
-        Task<Track> CreateTrackAsync(CreateTrackRequest request, CancellationToken ct = default);
-        Task<Track> GetTrackAsync(string id, CancellationToken ct = default);
-        Task<Track> UpdateTrackAsync(UpdateTrackRequest request, CancellationToken ct = default);
-        Task<bool> DeleteTrackAsync(string id, CancellationToken ct = default);
-        IAsyncEnumerable<Track> ListTracksAsync(int page, int pageSize, CancellationToken ct = default);
-        IAsyncEnumerable<Track> SearchTracksAsync(string query, CancellationToken ct = default);
-        IAsyncEnumerable<Track> GetTracksByPlaylistAsync(string playlistId, CancellationToken ct = default);
-        IAsyncEnumerable<Track> GetTracksByUserAsync(string userId, CancellationToken ct = default);
+        public Task<CreateResponseDto> CreateAsync(CreateRequestDto dto, CancellationToken ct = default);
+
+        public Task<GetByIdResponseDto> GetByIdAsync(GetByIdRequestDto dto, CancellationToken ct = default);
+
+        public Task<GetListByPlaylistResponseDto> GetListByPlaylistAsync(GetListByPlaylistRequestDto dto, CancellationToken ct = default);
+
+        public Task<SearchResponseDto> SearchAsync(SearchRequestDto dto, CancellationToken ct = default);
+
+        public Task<UpdateResponseDto> UpdateAsync(UpdateRequestDto dto, CancellationToken ct = default);
+
+        public Task<DeleteResponseDto> DeleteAsync(DeleteRequestDto dto, CancellationToken ct = default);
     }
 }

@@ -1,75 +1,67 @@
 ﻿syntax = "proto3";
 
-import "Models/operation_response.proto";
-import "Models/track_metadata.proto";
+import "Models/track_data.proto";
+import "Models/playlist_data.proto";
 
-import "google/protobuf/timestamp.proto";
+option csharp_namespace = "Soundy.SharedLibrary.Contracts.Playlist";
 
 service PlaylistGrpcService {
-  rpc CreatePlaylist (CreatePlaylistRequest) returns (CreatePlaylistResponse);
-  rpc AddTrackToPlaylist (AddTrackRequest) returns (AddTrackResponse);
-  rpc DeleteTrackFromPlaylist (DeleteTrackReq) returns (DeleteTrackRes);
-  rpc GetPlaylist (PlaylistId) returns (GetPlaylistResponse);
-  rpc DeletePlaylist (PlaylistId) returns (GetPlaylistResponse);
-  rpc GetTrackList (GetTrackListRequest) returns (GetTrackListResponse);
+	rpc Create (CreateRequest) returns (CreateResponse);
+	rpc GetById (GetByIdRequest) returns (GetByIdResponse);
+	rpc GetListByAuthorId (GetListByAuthorIdRequest) returns (GetListByAuthorIdResponse);
+	rpc Update (UpdateRequest) returns (UpdateResponse);
+	rpc Delete (DeleteRequest) returns (DeleteResponse);
 }
 
-// Create Playlist
-message CreatePlaylistRequest {
-  string name = 1;
-  string authorId = 2;
+//======== Requests ========
+message CreateRequest {
+	string name = 1;
+	string authorId = 2;
 }
 
-message CreatePlaylistResponse {
+message GetByIdRequest{
+	string id = 1;
+}
+
+message GetListByAuthorIdRequest{
+	string author_id = 1;
+}
+
+message UpdateRequest{
+	string id = 1;
+	string name = 2;
+}
+
+message DeleteRequest{
+	string id = 1;
+}
+
+//======== Responses ========
+
+message CreateResponse {
 	string id = 1;
 	string authorId = 2;
 	string name = 3;
 }
 
-// Add Track
-message AddTrackRequest {
-  int32 playlistId = 1;
-  int32 trackId = 2;
+message GetByIdResponse{
+	string id = 1;
+	string author_id = 2;
+	string name = 3;
+	repeated TrackData tracks = 4;
 }
 
-message AddTrackResponse {
-  bool success = 1;
+message GetListByAuthorIdResponse{
+	string author_id = 1;
+	repeated PlaylistData playlists = 2;
 }
 
-// Delete Track
-message DeleteTrackReq {
-  int32 playlistId = 1;
-  int32 trackId = 2;
+message UpdateResponse{
+	string id = 1;
+	string author_id = 2;
+	string name = 3;
 }
 
-message DeleteTrackRes {
-  bool success = 1;
-}
-
-// Get Playlist
-message GetPlaylistResponse {
-	bool isSuccess = 1;
-	int32 playlistId = 2;
-	string playlistName = 3;
-  int32 trackCount = 4;
-}
-
-// Get TrackList
-message GetTrackListRequest{
-  int32 playlistId = 1;
-  int32 pageNumber = 2;
-  int32 pageSize = 3;
-}
-
-message GetTrackListResponse {
-  int32 totalCount = 1;
-  int32 pageNumber = 2;
-  int32 pageSize = 3;
-  repeated TrackMetadata tracks = 4;
-}
-
-// Common
-
-message PlaylistId{
-  int32 id = 1;
+message DeleteResponse {
+  bool is_success = 1;
 }

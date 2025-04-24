@@ -25,6 +25,10 @@
 		<Protobuf Include="..\..\..\SharedLibrary\Soundy.SharedLibrary\Contracts\track.proto" GrpcServices="Server" />
 		<Protobuf Include="..\..\..\SharedLibrary\Soundy.SharedLibrary\Contracts\playlist.proto" GrpcServices="Server" />
 		<Protobuf Include="..\..\..\SharedLibrary\Soundy.SharedLibrary\Contracts\Models\operation_response.proto" GrpcServices="None" />
-		<Protobuf Include="..\..\..\SharedLibrary\Soundy.SharedLibrary\Contracts\Models\track_metadata.proto" GrpcServices="None" />
+		<Protobuf Include="..\..\..\SharedLibrary\Soundy.SharedLibrary\Contracts\Models\track_data.proto" GrpcServices="None" />
+		<Protobuf Include="..\..\..\SharedLibrary\Soundy.SharedLibrary\Contracts\Models\playlist_data.proto" GrpcServices="None" />
+	</ItemGroup>
+	<ItemGroup>
+	  <Folder Include="Migrations\" />
 	</ItemGroup>
 </Project>

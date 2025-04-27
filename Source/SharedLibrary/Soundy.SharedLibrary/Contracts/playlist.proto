@@ -7,43 +7,35 @@ option csharp_namespace = "Soundy.SharedLibrary.Contracts.Playlist";
 
 service PlaylistGrpcService {
 	rpc Create (CreateRequest) returns (CreateResponse);
+	rpc CreateFavorite (CreateFavoriteRequest) returns (CreateFavoriteResponse);
 	rpc GetById (GetByIdRequest) returns (GetByIdResponse);
 	rpc GetListByAuthorId (GetListByAuthorIdRequest) returns (GetListByAuthorIdResponse);
+	rpc GetFavorite(GetFavoriteRequest) returns (GetFavoriteResponse);
 	rpc Update (UpdateRequest) returns (UpdateResponse);
 	rpc Delete (DeleteRequest) returns (DeleteResponse);
 }
 
-//======== Requests ========
-message CreateRequest {
+
+message CreateRequest{
 	string name = 1;
 	string authorId = 2;
 }
-
-message GetByIdRequest{
-	string id = 1;
-}
-
-message GetListByAuthorIdRequest{
-	string author_id = 1;
-}
-
-message UpdateRequest{
-	string id = 1;
-	string name = 2;
-}
-
-message DeleteRequest{
-	string id = 1;
-}
-
-//======== Responses ========
-
 message CreateResponse {
 	string id = 1;
 	string authorId = 2;
 	string name = 3;
 }
 
+message CreateFavoriteRequest{
+	string author_id = 1;
+}
+message CreateFavoriteResponse{
+	PlaylistData playlist = 1;
+}
+
+message GetByIdRequest{
+	string id = 1;
+}
 message GetByIdResponse{
 	string id = 1;
 	string author_id = 2;
@@ -51,17 +43,35 @@ message GetByIdResponse{
 	repeated TrackData tracks = 4;
 }
 
+message GetFavoriteRequest{
+	string author_id = 1;
+}
+message GetFavoriteResponse{
+	PlaylistData playlist = 1;
+	repeated TrackData tracks = 2;
+}
+
+message GetListByAuthorIdRequest{
+	string author_id = 1;
+}
 message GetListByAuthorIdResponse{
 	string author_id = 1;
 	repeated PlaylistData playlists = 2;
 }
 
+message UpdateRequest{
+	string id = 1;
+	string name = 2;
+}
 message UpdateResponse{
 	string id = 1;
 	string author_id = 2;
 	string name = 3;
 }
 
+message DeleteRequest{
+	string id = 1;
+}
 message DeleteResponse {
   bool is_success = 1;
 }

@@ -1,6 +1,6 @@
 ﻿namespace Soundy.UserService.Dto
 {
-    public class UpdateUserResponseDto
+    public class GetByIdResponseDto
     {
         public Guid Id { get; set; }
         public string UserName { get; set; }

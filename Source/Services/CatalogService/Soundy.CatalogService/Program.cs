@@ -6,6 +6,7 @@ using Soundy.CatalogService.Extensions;
 using Soundy.CatalogService.Interfaces;
 using Soundy.CatalogService.Mappers;
 using Soundy.CatalogService.Services;
+using Soundy.CatalogService.Configurations;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -19,12 +20,13 @@ builder.Services.AddAutoMapper(typeof(PlaylistMapper));
 builder.Services.AddAutoMapper(typeof(TrackMapper));
 builder.Services.AddScoped<ITrackService, TrackService>();
 builder.Services.AddScoped<IPlaylistService, PlaylistService>();
+builder.Services.AddUserServiceClient(configuration);
 
 builder.Services.ConfigureContext(configuration);
 
 builder.WebHost.ConfigureKestrel(options =>
 {
-    var hostPort = configuration.GetValue("CATALOG_SERVICE_KESTREL_PORT", 5006);
+    var hostPort = configuration.GetValue("CATALOG_SERVICE_PORT", 5006);
     options.ListenAnyIP(hostPort, listenOptions => listenOptions.Protocols = HttpProtocols.Http2);
 });
 

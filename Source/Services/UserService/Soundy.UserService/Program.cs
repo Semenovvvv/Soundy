@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Server.Kestrel.Core;
 using Microsoft.EntityFrameworkCore;
+using Soundy.UserService.Configurations;
 using Soundy.UserService.Controllers;
 using Soundy.UserService.DataAccess;
 using Soundy.UserService.Extensions;
@@ -19,10 +20,11 @@ try
     builder.Services.AddScoped<IUserService, UserService>();
     builder.Services.AddAutoMapper(typeof(UserServiceMapper));
     builder.Services.ConfigureContext(configuration);
+    builder.Services.AddPlaylistServiceClient(configuration);
 
     builder.WebHost.ConfigureKestrel(options =>
     {
-        var hostPort = configuration.GetValue("USER_SERVICE_KESTREL_PORT", 5005);
+        var hostPort = configuration.GetValue("USER_SERVICE_PORT", 5005);
         options.ListenAnyIP(hostPort, listenOptions => listenOptions.Protocols = HttpProtocols.Http2);
     });
 

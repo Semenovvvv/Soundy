@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using Soundy.SharedLibrary.Contracts.User;
 using Soundy.UserService.Dto;
 
 namespace Soundy.UserService.Mappers
@@ -8,49 +9,49 @@ namespace Soundy.UserService.Mappers
         public UserServiceMapper()
         {
             // CreateUser
-            CreateMap<CreateUserRequest, CreateUserRequestDto>()
+            CreateMap<CreateRequest, CreateRequestDto>()
                 .ForMember(dto => dto.UserName, x => x.MapFrom(src => src.Username))
                 .ForMember(dto => dto.Email, x => x.MapFrom(src => src.Email));
 
-            CreateMap<CreateUserResponseDto, CreateUserResponse>()
+            CreateMap<CreateResponseDto, CreateResponse>()
                 .ForMember(src => src.Id, x => x.MapFrom(dto => dto.Id.ToString()))
                 .ForMember(src => src.Username, x => x.MapFrom(dto => dto.UserName))
                 .ForMember(src => src.Email, x => x.MapFrom(dto => dto.Email));
 
             // DeleteUser
-            CreateMap<DeleteUserRequest, DeleteUserRequestDto>()
+            CreateMap<DeleteRequest, DeleteRequestDto>()
                 .ForMember(dto => dto.Id, x => x.MapFrom(src => Guid.Parse(src.Id)));
 
-            CreateMap<DeleteUserResponseDto, DeleteUserResponse>()
+            CreateMap<DeleteResponseDto, DeleteResponse>()
                 .ForMember(src => src.IsSuccess, x => x.MapFrom(dto => dto.IsSuccess));
 
             // GetUserById
-            CreateMap<GetUserByIdRequest, GetUserByIdRequestDto>()
+            CreateMap<GetByIdRequest, GetByIdRequestDto>()
                 .ForMember(dto => dto.Id, x => x.MapFrom(src => Guid.Parse(src.Id)));
 
-            CreateMap<GetUserByIdResponseDto, GetUserByIdResponse>()
+            CreateMap<GetByIdResponseDto, GetByIdResponse>()
                 .ForMember(src => src.Id, x => x.MapFrom(dto => dto.Id.ToString()))
                 .ForMember(src => src.Username, x => x.MapFrom(dto => dto.UserName))
                 .ForMember(src => src.Email, x => x.MapFrom(dto => dto.Email));
 
             // SearchUsers
-            CreateMap<SearchUsersRequest, SearchUsersRequestDto>()
+            CreateMap<SearchRequest, SearchRequestDto>()
                 .ForMember(dto => dto.Pattern, x => x.MapFrom(src => src.Pattern))
                 .ForMember(dto => dto.PageNumber, x => x.MapFrom(src => src.PageNumber))
                 .ForMember(dto => dto.PageSize, x => x.MapFrom(src => src.PageSize));
 
-            CreateMap<SearchUsersResponseDto, SearchUsersResponse>()
+            CreateMap<SearchResponseDto, SearchResponse>()
                 .ForMember(src => src.Users, x => x.MapFrom(dto => dto.Users))
                 .ForMember(src => src.PageNumber, x => x.MapFrom(dto => dto.PageNumber))
                 .ForMember(src => src.PageSize, x => x.MapFrom(dto => dto.PageSize));
 
             // UpdateUser
-            CreateMap<UpdateUserRequest, UpdateUserRequestDto>()
+            CreateMap<UpdateRequest, UpdateRequestDto>()
                 .ForMember(dto => dto.Id, x => x.MapFrom(src => Guid.Parse(src.Id)))
                 .ForMember(dto => dto.UserName, x => x.MapFrom(src => src.Username))
                 .ForMember(dto => dto.Email, x => x.MapFrom(src => src.Email));
 
-            CreateMap<UpdateUserResponseDto, UpdateUserResponse>()
+            CreateMap<UpdateResponseDto, UpdateResponse>()
                 .ForMember(src => src.Id, x => x.MapFrom(dto => dto.Id.ToString()))
                 .ForMember(src => src.Username, x => x.MapFrom(dto => dto.UserName))
                 .ForMember(src => src.Email, x => x.MapFrom(dto => dto.Email));

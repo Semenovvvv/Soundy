@@ -15,7 +15,8 @@ namespace Soundy.UserService.Extensions
 
             //var connectionString = configuration.GetConnectionString("DefaultConnection");
 
-            var connectionString = $"Host={configuration[host] ?? throw new ArgumentNullException(host)};" +$"Port={configuration[port] ?? throw new ArgumentNullException(port)};" +
+            var connectionString = $"Host={configuration[host] ?? throw new ArgumentNullException(host)};" +
+                                   $"Port={configuration[port] ?? throw new ArgumentNullException(port)};" +
                                    $"Database={configuration[db] ?? throw new ArgumentNullException(db)};" +
                                    $"Username={configuration[user] ?? throw new ArgumentNullException(user)};" +
                                    $"Password={configuration[password] ?? throw new ArgumentNullException(password)}";

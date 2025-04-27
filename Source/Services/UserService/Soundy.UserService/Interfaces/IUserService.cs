@@ -4,14 +4,14 @@ namespace Soundy.UserService.Interfaces
 {
     public interface IUserService
     {
-        public Task<CreateUserResponseDto> CreateUserAsync(CreateUserRequestDto dto, CancellationToken ct = default);
+        public Task<CreateResponseDto> CreateUserAsync(CreateRequestDto dto, CancellationToken ct = default);
 
-        public Task<GetUserByIdResponseDto> GetUserById(GetUserByIdRequestDto dto, CancellationToken ct = default);
+        public Task<GetByIdResponseDto> GetUserById(GetByIdRequestDto dto, CancellationToken ct = default);
 
-        public Task<UpdateUserResponseDto> UpdateUser(UpdateUserRequestDto dto, CancellationToken ct = default);
+        public Task<UpdateResponseDto> UpdateUser(UpdateRequestDto dto, CancellationToken ct = default);
 
-        public Task<DeleteUserResponseDto> DeleteUser(DeleteUserRequestDto dto, CancellationToken ct = default);
+        public Task<DeleteResponseDto> DeleteUser(DeleteRequestDto dto, CancellationToken ct = default);
 
-        public Task<SearchUsersResponseDto> SearchUsers(SearchUsersRequestDto dto, CancellationToken ct = default);
+        public Task<SearchResponseDto> SearchUsers(SearchRequestDto dto, CancellationToken ct = default);
     }
 }

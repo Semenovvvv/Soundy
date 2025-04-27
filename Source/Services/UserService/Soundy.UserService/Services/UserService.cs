@@ -1,5 +1,6 @@
 ﻿using Grpc.Core;
 using Microsoft.EntityFrameworkCore;
+using Soundy.SharedLibrary.Contracts.Playlist;
 using Soundy.UserService.DataAccess;
 using Soundy.UserService.Dto;
 using Soundy.UserService.Entities;
@@ -10,38 +11,53 @@ namespace Soundy.UserService.Services
     public class UserService : IUserService
     {
         private readonly IDbContextFactory<DatabaseContext> _dbFactory;
+        private readonly PlaylistGrpcService.PlaylistGrpcServiceClient _playlistService;
 
-        public UserService(IDbContextFactory<DatabaseContext> dbFactory)
+        public UserService(IDbContextFactory<DatabaseContext> dbFactory, PlaylistGrpcService.PlaylistGrpcServiceClient playlistService)
         {
+            _playlistService = playlistService;
             _dbFactory = dbFactory;
         }
 
-        public async Task<CreateUserResponseDto> CreateUserAsync(CreateUserRequestDto dto, CancellationToken ct = default)
+        public async Task<CreateResponseDto> CreateUserAsync(CreateRequestDto dto, CancellationToken ct = default)
         {
-            var user = new User()
+            try
             {
-                Email = dto.Email,
-                UserName = dto.UserName,
-                CreatedAt = DateTime.UtcNow
-            };
+                var user = new User()
+                {
+                    Email = dto.Email,
+                    UserName = dto.UserName,
+                    CreatedAt = DateTime.UtcNow
+                };
 
-            await using var dbContext = await _dbFactory.CreateDbContextAsync(ct);
+                await using var dbContext = await _dbFactory.CreateDbContextAsync(ct);
 
-            if (await dbContext.Users.FirstOrDefaultAsync(x => x.Email == dto.Email, ct) is not null)
-                throw new RpcException(new Status(StatusCode.InvalidArgument, $"User already exists. Email = {dto.Email}"));
+                if (await dbContext.Users.FirstOrDefaultAsync(x => x.Email == dto.Email, ct) is not null)
+                    throw new RpcException(new Status(StatusCode.InvalidArgument,
+                        $"User already exists. Email = {dto.Email}"));
 
-            await dbContext.Users.AddAsync(user, ct);
-            await dbContext.SaveChangesAsync(ct);
+                await dbContext.Users.AddAsync(user, ct);
+                await _playlistService.CreateFavoriteAsync(new CreateFavoriteRequest() { AuthorId = user.Id.ToString() });
+                await dbContext.SaveChangesAsync(ct);
 
-            return new CreateUserResponseDto()
+                return new CreateResponseDto()
+                {
+                    Id = user.Id,
+                    UserName = user.UserName,
+                    Email = user.Email
+                };
+            }
+            catch (RpcException rpcEx)
             {
-                Id = user.Id,
-                UserName = user.UserName,
-                Email = user.Email
-            };
+                throw;
+            }
+            catch (Exception ex)
+            {
+                throw new RpcException(new Status(StatusCode.Internal, ex.Message));
+            }
         }
 
-        public async Task<GetUserByIdResponseDto> GetUserById(GetUserByIdRequestDto dto, CancellationToken ct = default)
+        public async Task<GetByIdResponseDto> GetUserById(GetByIdRequestDto dto, CancellationToken ct = default)
         {
             await using var dbContext = await _dbFactory.CreateDbContextAsync(ct);
 
@@ -52,7 +68,7 @@ namespace Soundy.UserService.Services
             if (user is null)
                 throw new RpcException(new Status(StatusCode.NotFound, $"User not found. Id = {dto.Id}"));
 
-            return new GetUserByIdResponseDto()
+            return new GetByIdResponseDto()
             {
                 Id = user.Id,
                 UserName = user.UserName,
@@ -60,7 +76,7 @@ namespace Soundy.UserService.Services
             };
         }
 
-        public async Task<UpdateUserResponseDto> UpdateUser(UpdateUserRequestDto dto, CancellationToken ct = default)
+        public async Task<UpdateResponseDto> UpdateUser(UpdateRequestDto dto, CancellationToken ct = default)
         {
             await using var dbContext = await _dbFactory.CreateDbContextAsync(ct);
 
@@ -76,7 +92,7 @@ namespace Soundy.UserService.Services
 
             await dbContext.SaveChangesAsync(ct);
 
-            return new UpdateUserResponseDto()
+            return new UpdateResponseDto()
             {
                 Id = user.Id,
                 Email = user.Email,
@@ -84,7 +100,7 @@ namespace Soundy.UserService.Services
             };
         }
 
-        public async Task<DeleteUserResponseDto> DeleteUser(DeleteUserRequestDto dto, CancellationToken ct = default)
+        public async Task<DeleteResponseDto> DeleteUser(DeleteRequestDto dto, CancellationToken ct = default)
         {
             await using var dbContext = await _dbFactory.CreateDbContextAsync(ct);
             var user = await dbContext.Users.FirstOrDefaultAsync(x => x.Id == dto.Id, cancellationToken: ct);
@@ -96,13 +112,13 @@ namespace Soundy.UserService.Services
 
             await dbContext.SaveChangesAsync(ct);
 
-            return new DeleteUserResponseDto()
+            return new DeleteResponseDto()
             {
                 IsSuccess = true
             };
         }
 
-        public async Task<SearchUsersResponseDto> SearchUsers(SearchUsersRequestDto dto, CancellationToken ct = default)
+        public async Task<SearchResponseDto> SearchUsers(SearchRequestDto dto, CancellationToken ct = default)
         {
             if (string.IsNullOrWhiteSpace(dto.Pattern))
                 throw new RpcException(new Status(StatusCode.InvalidArgument, $"Pattern is empty"));
@@ -128,7 +144,7 @@ namespace Soundy.UserService.Services
                 })
                 .ToListAsync(ct);
 
-            return new SearchUsersResponseDto()
+            return new SearchResponseDto()
             {
                 Users = users,
                 PageNumber = dto.PageNumber,

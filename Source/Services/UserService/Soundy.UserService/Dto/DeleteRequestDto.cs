@@ -1,6 +1,6 @@
 ﻿namespace Soundy.UserService.Dto
 {
-    public class DeleteUserRequestDto
+    public class DeleteRequestDto
     {
         public Guid Id { get; set; }
     }

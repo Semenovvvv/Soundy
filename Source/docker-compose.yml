@@ -1,26 +1,40 @@
-# encoding: utf-8    
-
 networks:
   app-network:
     driver: bridge
 
 services:
+  api_gateway:
+    image: ${DOCKER_REGISTRY-}webhost
+    build:
+      context: .
+      dockerfile: ApiGateway/Soundy.ApiGateWay/Dockerfile
+    environment:
+      USER_SERVICE_URI: ${USER_SERVICE_URI}
+      CATALOG_SERVICE_URI: ${CATALOG_SERVICE_URI}
+      FILE_SERVICE_URI: ${FILE_SERVICE_URI}
+      DOTNET_ENVIRONMENT: "Development"
+    ports:
+      - "${API_GATEWAY_PORT}:${API_GATEWAY_PORT}"
+    networks:
+      - app-network
+
   user_service:
+    image: ${DOCKER_REGISTRY-}userservice
     build:
       context: .
       dockerfile: Services/UserService/Soundy.UserService/Dockerfile
       # context: ${USER_SERVICE_PATH}
       # dockerfile: Dockerfile
     environment:
-      - USER_SERVICE_KESTREL_PORT=${USER_SERVICE_KESTREL_PORT}
+      - CATALOG_SERVICE_URI=${CATALOG_SERVICE_URI}
+      - USER_SERVICE_PORT=${USER_SERVICE_PORT}
       - USER_SERVICE_POSTGRES_HOST=${USER_SERVICE_POSTGRES_HOST}
       - USER_SERVICE_POSTGRES_DB=${USER_SERVICE_POSTGRES_DB}
       - USER_SERVICE_POSTGRES_PORT=${USER_SERVICE_POSTGRES_PORT} 
       - USER_SERVICE_POSTGRES_USER=${USER_SERVICE_POSTGRES_USER} 
       - USER_SERVICE_POSTGRES_PASSWORD=${USER_SERVICE_POSTGRES_PASSWORD} 
     ports:
-      - "5005:5005"
-    container_name: user_service
+      - "${USER_SERVICE_PORT}:${USER_SERVICE_PORT}"
     depends_on:
       - user_db_pgsql
     networks:
@@ -39,27 +53,27 @@ services:
     volumes:
       - user_db_pgsql_data:/var/lib/postgresql/data
     restart: always
-    container_name: user_db_pgsql
     command: -p 5433
     networks:
       - app-network
 
   catalog_service:
+    image: ${DOCKER_REGISTRY-}catalogservice
     build:
       context: .
       dockerfile: Services/CatalogService/Soundy.CatalogService/Dockerfile
       # context: ${CATALOG_SERVICE_PATH}
       # dockerfile: ./Dockerfile
     environment:
-      - CATALOG_SERVICE_KESTREL_PORT=${CATALOG_SERVICE_KESTREL_PORT}
+      - USER_SERVICE_URI=${USER_SERVICE_URI}
+      - CATALOG_SERVICE_PORT=${CATALOG_SERVICE_PORT}
       - CATALOG_SERVICE_POSTGRES_HOST=${CATALOG_SERVICE_POSTGRES_HOST}
       - CATALOG_SERVICE_POSTGRES_DB=${CATALOG_SERVICE_POSTGRES_DB}
       - CATALOG_SERVICE_POSTGRES_PORT=${CATALOG_SERVICE_POSTGRES_PORT} 
       - CATALOG_SERVICE_POSTGRES_USER=${CATALOG_SERVICE_POSTGRES_USER} 
       - CATALOG_SERVICE_POSTGRES_PASSWORD=${CATALOG_SERVICE_POSTGRES_PASSWORD} 
     ports:
-      - "5006:5006"
-    container_name: catalog_service
+      - "${CATALOG_SERVICE_PORT}:${CATALOG_SERVICE_PORT}"
     depends_on:
       - catalog_db_pgsql
     networks:
@@ -78,30 +92,29 @@ services:
     volumes:
       - catalog_db_pgsql_data:/var/lib/postgresql/data
     restart: always
-    container_name: catalog_db_pgsql
     command: -p 5435
     networks:
       - app-network
 
   file_service:
+    image: ${DOCKER_REGISTRY-}fileservice
     build:
       context: .
       dockerfile: Services/FileService/Soundy.FileService/Dockerfile
       # context: ${CATALOG_SERVICE_PATH}
       # dockerfile: ./Dockerfile
     environment:
-      - FILE_SERVICE_KESTREL_PORT=${FILE_SERVICE_KESTREL_PORT}
+      - FILE_SERVICE_PORT=${FILE_SERVICE_PORT}
     ports:
-      - "5007:5007"
-    container_name: file_service
+      - "${FILE_SERVICE_PORT}:${FILE_SERVICE_PORT}"
     networks:
       - app-network
 
   minio:
     image: minio/minio:latest
     environment:
-      MINIO_ROOT_USER: minioadmin
-      MINIO_ROOT_PASSWORD: minioadmin
+      MINIO_ROOT_USER: ${MINIO_LOGIN}
+      MINIO_ROOT_PASSWORD: ${MINIO_PASSWORD}
     ports:
       - "9000:9000"
       - "9001:9001"

@@ -24,6 +24,7 @@
 	<ItemGroup>
 		<Protobuf Include="..\..\..\SharedLibrary\Soundy.SharedLibrary\Contracts\track.proto" GrpcServices="Server" />
 		<Protobuf Include="..\..\..\SharedLibrary\Soundy.SharedLibrary\Contracts\playlist.proto" GrpcServices="Server" />
+		<Protobuf Include="..\..\..\SharedLibrary\Soundy.SharedLibrary\Contracts\user.proto" GrpcServices="Client" />
 		<Protobuf Include="..\..\..\SharedLibrary\Soundy.SharedLibrary\Contracts\Models\operation_response.proto" GrpcServices="None" />
 		<Protobuf Include="..\..\..\SharedLibrary\Soundy.SharedLibrary\Contracts\Models\track_data.proto" GrpcServices="None" />
 		<Protobuf Include="..\..\..\SharedLibrary\Soundy.SharedLibrary\Contracts\Models\playlist_data.proto" GrpcServices="None" />

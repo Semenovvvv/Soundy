@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk.Web">
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
 
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
@@ -14,14 +14,29 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.19.5" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.4.0" />
+    <PackageReference Include="Grpc.AspNetCore" Version="2.66.0" />
+    <PackageReference Include="Grpc.Net.Client" Version="2.66.0" />
+    <PackageReference Include="AutoMapper" Version="14.0.0" />
   </ItemGroup>
 
+	<ItemGroup>
+		<Protobuf Include="..\..\SharedLibrary\Soundy.SharedLibrary\Contracts\user.proto" GrpcServices="Client" />
+		<Protobuf Include="..\..\SharedLibrary\Soundy.SharedLibrary\Contracts\playlist.proto" GrpcServices="Client" />
+		<Protobuf Include="..\..\SharedLibrary\Soundy.SharedLibrary\Contracts\track.proto" GrpcServices="Client" />
+		<Protobuf Include="..\..\SharedLibrary\Soundy.SharedLibrary\Contracts\trackfile.proto" GrpcServices="Client" />
+		<Protobuf Include="..\..\SharedLibrary\Soundy.SharedLibrary\Contracts\Models\playlist_data.proto" GrpcServices="None" />
+		<Protobuf Include="..\..\SharedLibrary\Soundy.SharedLibrary\Contracts\Models\track_data.proto" GrpcServices="None" />
+	</ItemGroup>
+
   <ItemGroup>
-    <Folder Include="Controllers\" />
-    <Folder Include="Protos\" />
     <Folder Include="Validators\" />
     <Folder Include="Dto\" />
     <Folder Include="Mappers\" />
+    <Folder Include="Extensions\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\Services\UserService\Soundy.UserService\Soundy.UserService.csproj" />
   </ItemGroup>
 
 </Project>

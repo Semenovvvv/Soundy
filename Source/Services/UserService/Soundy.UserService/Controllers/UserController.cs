@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using Grpc.Core;
+using Soundy.SharedLibrary.Contracts.User;
 using Soundy.UserService.Dto;
 using Soundy.UserService.Interfaces;
 
@@ -16,39 +17,39 @@ namespace Soundy.UserService.Controllers
             _mapper = mapper;
         }
 
-        public override async Task<CreateUserResponse> CreateUser(CreateUserRequest request, ServerCallContext context)
+        public override async Task<CreateResponse> Create(CreateRequest request, ServerCallContext context)
         {
-            var dto = _mapper.Map<CreateUserRequestDto>(request);
+            var dto = _mapper.Map<CreateRequestDto>(request);
             var response = await _userService.CreateUserAsync(dto, context.CancellationToken);
-            return _mapper.Map<CreateUserResponse>(response);
+            return _mapper.Map<CreateResponse>(response);
         }
 
-        public override async Task<GetUserByIdResponse> GetUserById(GetUserByIdRequest request, ServerCallContext context)
+        public override async Task<GetByIdResponse> GetById(GetByIdRequest request, ServerCallContext context)
         {
-            var dto = _mapper.Map<GetUserByIdRequestDto>(request);
+            var dto = _mapper.Map<GetByIdRequestDto>(request);
             var response = await _userService.GetUserById(dto);
-            return _mapper.Map<GetUserByIdResponse>(response);
+            return _mapper.Map<GetByIdResponse>(response);
         }
 
-        public override async Task<UpdateUserResponse> UpdateUser(UpdateUserRequest request, ServerCallContext context)
+        public override async Task<UpdateResponse> Update(UpdateRequest request, ServerCallContext context)
         {
-            var dto = _mapper.Map<UpdateUserRequestDto>(request);
+            var dto = _mapper.Map<UpdateRequestDto>(request);
             var response = await _userService.UpdateUser(dto);
-            return _mapper.Map<UpdateUserResponse>(response);
+            return _mapper.Map<UpdateResponse>(response);
         }
 
-        public override async Task<DeleteUserResponse> DeleteUser(DeleteUserRequest request, ServerCallContext context)
+        public override async Task<DeleteResponse> Delete(DeleteRequest request, ServerCallContext context)
         {
-            var dto = _mapper.Map<DeleteUserRequestDto>(request);
+            var dto = _mapper.Map<DeleteRequestDto>(request);
             var response = await _userService.DeleteUser(dto);
-            return _mapper.Map<DeleteUserResponse>(response);
+            return _mapper.Map<DeleteResponse>(response);
         }
 
-        public override async Task<SearchUsersResponse> SearchUsers(SearchUsersRequest request, ServerCallContext context)
+        public override async Task<SearchResponse> Search(SearchRequest request, ServerCallContext context)
         {
-            var dto = _mapper.Map<SearchUsersRequestDto>(request);
+            var dto = _mapper.Map<SearchRequestDto>(request);
             var response = await _userService.SearchUsers(dto);
-            return _mapper.Map<SearchUsersResponse>(response);
+            return _mapper.Map<SearchResponse>(response);
         }
     }
 }

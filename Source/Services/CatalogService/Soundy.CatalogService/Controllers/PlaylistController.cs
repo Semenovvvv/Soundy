@@ -18,6 +18,13 @@ namespace Soundy.CatalogService.Controllers
             return _mapper.Map<CreateResponse>(responseDto);
         }
 
+        public override async Task<CreateFavoriteResponse> CreateFavorite(CreateFavoriteRequest request, ServerCallContext context)
+        {
+            var requestDto = _mapper.Map<CreateFavoriteRequestDto>(request);
+            var responseDto = await _playlistService.CreateFavoriteAsync(requestDto, context.CancellationToken);
+            return _mapper.Map<CreateFavoriteResponse>(responseDto);
+        }
+
         public override async Task<GetByIdResponse> GetById(GetByIdRequest request, ServerCallContext context)
         {
             var requestDto = _mapper.Map<GetByIdRequestDto>(request);
@@ -30,6 +37,13 @@ namespace Soundy.CatalogService.Controllers
             var requestDto = _mapper.Map<GetListByAuthorIdRequestDto>(request);
             var responseDto = await _playlistService.GetListByAuthorIdAsync(requestDto, context.CancellationToken);
             return _mapper.Map<GetListByAuthorIdResponse>(responseDto);
+        }
+
+        public override async Task<GetFavoriteResponse> GetFavorite(GetFavoriteRequest request, ServerCallContext context)
+        {
+            var requestDto = _mapper.Map<GetFavoriteRequestDto>(request);
+            var responseDto = await _playlistService.GetFavoriteAsync(requestDto, context.CancellationToken);
+            return _mapper.Map<GetFavoriteResponse>(responseDto);
         }
 
         public override async Task<UpdateResponse> Update(UpdateRequest request, ServerCallContext context)

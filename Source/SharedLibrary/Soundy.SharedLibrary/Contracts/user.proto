@@ -1,66 +1,65 @@
 ﻿syntax = "proto3";
 
-import "Models/operation_response.proto";
-import "Models/pagination_info.proto";
+option csharp_namespace = "Soundy.SharedLibrary.Contracts.User";
 
 service UserGrpcService {
-    rpc CreateUser (CreateUserRequest) returns (CreateUserResponse);
-    rpc GetUserById (GetUserByIdRequest) returns (GetUserByIdResponse);
-    rpc UpdateUser (UpdateUserRequest) returns (UpdateUserResponse);
-    rpc DeleteUser (DeleteUserRequest) returns (DeleteUserResponse);
-    rpc SearchUsers (SearchUsersRequest) returns (SearchUsersResponse);
+    rpc Create (CreateRequest) returns (CreateResponse);
+    rpc GetById (GetByIdRequest) returns (GetByIdResponse);
+    rpc Update (UpdateRequest) returns (UpdateResponse);
+    rpc Delete (DeleteRequest) returns (DeleteResponse);
+    rpc Search (SearchRequest) returns (SearchResponse);
 }
 
 //======== Requests ========
-message CreateUserRequest{
+message CreateRequest{
     string username = 1;
     string email = 3;
 }
 
-message GetUserByIdRequest {
+message GetByIdRequest {
     string id = 1;
 }
 
-message UpdateUserRequest {
+message UpdateRequest {
     string id = 1;
     string username = 2;
     string email = 3;
 }
 
-message DeleteUserRequest {
+message DeleteRequest {
     string id = 1;
 }
 
-message SearchUsersRequest {
+message SearchRequest {
     string pattern = 1;
     int32 page_number = 2;
     int32 page_size = 3;
 }
 
 //======== Responses ========
-message CreateUserResponse{
+message CreateResponse{
     string id = 1;
     string username = 2;
     string email = 3;
 }
 
-message UpdateUserResponse {
+message UpdateResponse {
     string id = 1;
     string username = 2;
     string email = 3;
 }
 
-message GetUserByIdResponse {
+message GetByIdResponse {
     string id = 1;
     string username = 2;
     string email = 3;
 }
 
-message DeleteUserResponse{
+message DeleteResponse{
     bool is_success = 1;
 }
 
-message SearchUsersResponse {
+message SearchResponse {
     repeated UserData users = 1;
     int32 page_number = 2;
     int32 page_size = 3;

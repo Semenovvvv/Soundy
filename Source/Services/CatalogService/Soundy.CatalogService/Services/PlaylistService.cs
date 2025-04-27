@@ -4,31 +4,91 @@ using Soundy.CatalogService.DataAccess;
 using Soundy.CatalogService.Dto.PlaylistDto;
 using Soundy.CatalogService.Entities;
 using Soundy.CatalogService.Interfaces;
+using Soundy.SharedLibrary.Contracts.User;
 
 namespace Soundy.CatalogService.Services
 {
-    public class PlaylistService(IDbContextFactory<DatabaseContext> dbFactory) : IPlaylistService
+    public class PlaylistService : IPlaylistService
     {
-        private IDbContextFactory<DatabaseContext> _dbFactory = dbFactory;
+        private readonly IDbContextFactory<DatabaseContext> _dbFactory;
+        private readonly UserGrpcService.UserGrpcServiceClient _userService;
+
+        public PlaylistService(IDbContextFactory<DatabaseContext> dbFactory, UserGrpcService.UserGrpcServiceClient userService)
+        {
+            _dbFactory = dbFactory;
+            _userService = userService;
+        }
 
         public async Task<CreateResponseDto> CreateAsync(CreateRequestDto dto, CancellationToken ct = default)
         {
-            await using var dbContext = await _dbFactory.CreateDbContextAsync(ct);
+            try
+            {
+                await using var dbContext = await _dbFactory.CreateDbContextAsync(ct);
 
-            var playlist = new Playlist()
+                await _userService.GetByIdAsync(new GetByIdRequest() { Id = dto.AuthorId.ToString() });
+
+                var playlist = new Playlist()
+                {
+                    AuthorId = dto.AuthorId,
+                    Name = dto.Name,
+                    CreatedAt = DateTime.UtcNow,
+                    IsFavorite = false
+                };
+
+                await dbContext.Playlists.AddAsync(playlist, ct);
+                await dbContext.SaveChangesAsync(ct);
+                return new CreateResponseDto()
+                {
+                    Id = playlist.Id,
+                    AuthorId = playlist.AuthorId,
+                    Name = playlist.Name
+                };
+            }
+            catch (RpcException prcEx)
             {
-                AuthorId = dto.AuthorId,
-                Name = dto.Name,
-                CreatedAt = DateTime.UtcNow
-            };
-            await dbContext.Playlists.AddAsync(playlist, ct);
-            await dbContext.SaveChangesAsync(ct);
-            return new CreateResponseDto()
+                throw;
+            }
+            catch (Exception ex)
             {
-                Id = playlist.Id,
-                AuthorId = playlist.AuthorId,
-                Name = playlist.Name
-            };
+                throw new RpcException(new Status(StatusCode.Internal, ex.Message));
+            }
+        }
+
+        public async Task<CreateFavoriteResponseDto> CreateFavoriteAsync(CreateFavoriteRequestDto dto, CancellationToken ct = default)
+        {
+            try
+            {
+                await using var dbContext = await _dbFactory.CreateDbContextAsync(ct);
+
+                var playlist = new Playlist()
+                {
+                    AuthorId = dto.AuthorId,
+                    Name = "Favorite",
+                    CreatedAt = DateTime.UtcNow,
+                    IsFavorite = true
+                };
+
+                await dbContext.Playlists.AddAsync(playlist, ct);
+                await dbContext.SaveChangesAsync(ct);
+                return new CreateFavoriteResponseDto()
+                {
+                    Playlist = new PlaylistDto()
+                    {
+                        Id = playlist.Id,
+                        AuthorId = playlist.AuthorId,
+                        Name = playlist.Name,
+                        CreatedAt = playlist.CreatedAt
+                    }
+                };
+            }
+            catch (RpcException prcEx)
+            {
+                throw;
+            }
+            catch (Exception ex)
+            {
+                throw new RpcException(new Status(StatusCode.Internal, ex.Message));
+            }
         }
 
         public async Task<GetByIdResponseDto> GetByIdAsync(GetByIdRequestDto dto, CancellationToken ct = default)
@@ -39,16 +99,17 @@ namespace Soundy.CatalogService.Services
                 .AsNoTracking()
                 .FirstOrDefaultAsync(x => x.Id == dto.Id, ct);
 
+            if (playlist is null)
+                throw new RpcException(new Status(StatusCode.NotFound, $"Playlist with Id = {dto.Id} not found"));
+
             var tracks = await dbContext.Tracks
                 .Where(x => x.PlaylistId == dto.Id)
                 .Select(x => new TrackDto()
                 {
                     TrackId = x.Id,
-                    Title = x.Title
+                    Title = x.Title,
+                    CreatedAt = x.CreatedAt
                 }).ToListAsync(ct);
-
-            if (playlist is null)
-                throw new RpcException(new Status(StatusCode.NotFound, $"Playlist with Id = {dto.Id} not found"));
 
             return new GetByIdResponseDto()
             {
@@ -81,6 +142,36 @@ namespace Soundy.CatalogService.Services
             };
         }
 
+        public async Task<GetFavoriteResponseDto> GetFavoriteAsync(GetFavoriteRequestDto dto, CancellationToken ct = default)
+        {
+            await using var dbContext = await _dbFactory.CreateDbContextAsync(ct);
+
+            var playlist = await dbContext.Playlists
+                .AsNoTracking()
+                .FirstOrDefaultAsync(x => x.AuthorId == dto.AuthorId && x.IsFavorite, ct);
+
+            var playlistDto = new PlaylistDto()
+            {
+                Id = playlist.Id,
+                AuthorId = playlist.AuthorId,
+                Name = playlist.Name,
+                CreatedAt = playlist.CreatedAt
+            };
+
+            var tracks = await dbContext.Tracks.Where(x => x.PlaylistId == playlistDto.Id).Select(x => new TrackDto()
+            {
+                TrackId = x.Id,
+                Title = x.Title,
+                CreatedAt = x.CreatedAt
+            }).ToListAsync(ct);
+
+            return new GetFavoriteResponseDto()
+            {
+                Playlist = playlistDto,
+                Tracks = tracks
+            };
+        }
+
         public async Task<UpdateResponseDto> UpdateAsync(UpdateRequestDto dto, CancellationToken ct = default)
         {
             await using var dbContext = await _dbFactory.CreateDbContextAsync(ct);
@@ -108,6 +199,7 @@ namespace Soundy.CatalogService.Services
             await using var dbContext = await _dbFactory.CreateDbContextAsync(ct);
 
             var playlist = await dbContext.Playlists.FirstOrDefaultAsync(x => x.Id == dto.Id, ct);
+
             if (playlist is null)
             {
                 throw new RpcException(new Status(StatusCode.NotFound, $"Playlist with Id = {dto.Id} not found"));

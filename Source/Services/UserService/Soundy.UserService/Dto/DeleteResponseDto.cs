@@ -1,6 +1,6 @@
 ﻿namespace Soundy.UserService.Dto
 {
-    public class DeleteUserResponseDto
+    public class DeleteResponseDto
     {
         public bool IsSuccess { get; set; }
     }

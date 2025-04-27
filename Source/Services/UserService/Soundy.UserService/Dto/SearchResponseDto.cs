@@ -1,6 +1,6 @@
 ﻿namespace Soundy.UserService.Dto
 {
-    public class SearchUsersResponseDto
+    public class SearchResponseDto
     {
         public IEnumerable<UserDto> Users { get; set; }
         public int PageSize { get; set; }

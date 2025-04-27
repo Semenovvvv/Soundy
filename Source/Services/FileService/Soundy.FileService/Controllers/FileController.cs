@@ -19,7 +19,7 @@ namespace Soundy.FileService.Controllers
             _s3Client = s3Client;
             var awsOptions = configuration.GetSection(S3Options.S3).Get<S3Options>();
             _bucketName = configuration.GetSection(S3Options.S3).Get<S3Options>()?.BucketName;
-        }
+        } 
 
         public override async Task<UploadTrackFileResponse> UploadTrackFile(IAsyncStreamReader<UploadTrackFileRequest> requestStream, ServerCallContext context)
         {

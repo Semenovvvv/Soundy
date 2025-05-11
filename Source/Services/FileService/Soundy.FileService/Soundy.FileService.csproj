@@ -20,7 +20,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<Protobuf Include="..\..\..\SharedLibrary\Soundy.SharedLibrary\Contracts\trackfile.proto" GrpcServices="Server" />
+		<Protobuf Include="..\..\..\SharedLibrary\Soundy.SharedLibrary\Contracts\file.proto" GrpcServices="Server" />
 	</ItemGroup>
 
 </Project>

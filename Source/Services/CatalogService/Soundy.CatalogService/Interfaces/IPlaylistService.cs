@@ -1,4 +1,4 @@
-﻿using Soundy.CatalogService.Dto.PlaylistDto;
+﻿using Soundy.CatalogService.Dto.PlaylistDtos;
 
 namespace Soundy.CatalogService.Interfaces
 {
@@ -13,6 +13,8 @@ namespace Soundy.CatalogService.Interfaces
         Task<GetListByAuthorIdResponseDto> GetListByAuthorIdAsync(GetListByAuthorIdRequestDto dto, CancellationToken ct = default);
 
         Task<GetFavoriteResponseDto> GetFavoriteAsync(GetFavoriteRequestDto dto, CancellationToken ct = default);
+
+        Task<AddTrackResponseDto> AddTrackAsync(AddTrackRequestDto dto, CancellationToken ct = default);
 
         Task<UpdateResponseDto> UpdateAsync(UpdateRequestDto dto, CancellationToken ct = default);
 

@@ -1,0 +1,15 @@
+﻿syntax = "proto3";
+
+import "Types/type_track.proto";
+import "Types/type_playlist.proto";
+
+service TestGrpcService {
+	rpc Test (TestRequest) returns (TestResponse);
+}
+
+message TestRequest{
+	int32 id = 1;
+}
+message TestResponse{
+	types.Playlist playlist = 1;
+}

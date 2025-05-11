@@ -1,4 +1,4 @@
-﻿using Soundy.SharedLibrary.Contracts.Playlist;
+﻿using Service.Playlist;
 
 namespace Soundy.UserService.Configurations
 {

@@ -18,8 +18,11 @@ builder.Services.AddGrpc();
 
 builder.Services.AddAutoMapper(typeof(PlaylistMapper));
 builder.Services.AddAutoMapper(typeof(TrackMapper));
+builder.Services.AddAutoMapper(typeof(AlbumMapper));
+builder.Services.AddAutoMapper(typeof(DtoMapper));
 builder.Services.AddScoped<ITrackService, TrackService>();
 builder.Services.AddScoped<IPlaylistService, PlaylistService>();
+builder.Services.AddScoped<IAlbumService, AlbumService>();
 builder.Services.AddUserServiceClient(configuration);
 
 builder.Services.ConfigureContext(configuration);
@@ -49,6 +52,7 @@ using (var scope = app.Services.CreateScope())
 
 app.MapGrpcService<TrackGrpcController>();
 app.MapGrpcService<PlaylistGrpcController>();
+app.MapGrpcService<AlbumGrpcController>();
 
 app.Run();
  

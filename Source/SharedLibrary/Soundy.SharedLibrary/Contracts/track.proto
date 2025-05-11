@@ -1,76 +1,80 @@
 ﻿syntax = "proto3";
 
-import "Models/track_data.proto";
-import "Models/playlist_data.proto";
+package service.track;
 
-option csharp_namespace = "Soundy.SharedLibrary.Contracts.Track";
+import "google/protobuf/timestamp.proto";
+import "Types/type_track.proto";
 
 service TrackGrpcService {
-  // Metadata
-  rpc Create(CreateRequest) returns (CreateResponse);
-  rpc GetById(GetByIdRequest) returns (GetByIdResponse);
-  rpc Update(UpdateRequest) returns (UpdateResponse);
-  rpc Delete(DeleteRequest) returns (DeleteResponse);
-  
-  rpc Search(SearchRequest) returns (SearchResponse);
-  rpc GetListByPlaylist(GetListByPlaylistRequest) returns (GetListByPlaylistResponse);
+    // Metadata
+    rpc Create(CreateRequest) returns (CreateResponse);
+    rpc GetById(GetByIdRequest) returns (GetByIdResponse);
+    rpc Update(UpdateRequest) returns (UpdateResponse);
+    rpc Delete(DeleteRequest) returns (DeleteResponse);
+    rpc GetListByUserId(GetListByUserIdRequest) returns (GetListByUserIdResponse);
+    
+    rpc Search(SearchRequest) returns (SearchResponse);
+    //rpc GetListByPlaylist(GetListByPlaylistRequest) returns (GetListByPlaylistResponse);
 }
 
 message CreateRequest {
     string title = 1;
-    string user_id = 2;
-    string playlist_id = 3;
+    string author_id = 2;
+    string album_id = 3;
     int32 duration = 4;
+    string avatar_url = 5;
 }
-
 message CreateResponse{
-    TrackData track = 1;
+    types.Track track = 1;
 }
 
 message GetByIdRequest {
     string id = 1;
 }
-
 message GetByIdResponse{
-    TrackData track = 1;
+    types.Track track = 1;
 }
 
 message UpdateRequest {
-  string id = 1;
-  string title = 2;
+    string id = 1;
+    string title = 2;
 }
-
 message UpdateResponse{
-    TrackData track = 1;
+    types.Track track = 1;
 }
 
 message DeleteRequest {
-  string id = 1;
+    string id = 1;
 }
-
 message DeleteResponse {
-  bool success = 1;
+    bool success = 1;
 }
 
 message SearchRequest {
-  string pattern = 1;
-  int32 page_size = 2;
-  int32 page_num = 3;
+    string pattern = 1;
+    int32 page_size = 2;
+    int32 page_num = 3;
 }
-
 message SearchResponse{
     string pattern = 1;
     int32 page_size = 2;
     int32 page_num = 3;
-    repeated TrackData tracks = 4;
+    repeated types.Track tracks = 4;
 }
 
-message GetListByPlaylistRequest{
-    string playlist_id = 1;
+//message GetListByPlaylistRequest{
+ //   string playlist_id = 1;
+//}
+//message GetListByPlaylistResponse{
+ //   string playlist_id = 1;
+ //   PlaylistData playlist = 2;
+  //  repeated TypeTrack tracks = 3;
+//}
+
+message GetListByUserIdRequest{
+    string user_id = 1;
 }
 
-message GetListByPlaylistResponse{
-    string playlist_id = 1;
-    PlaylistData playlist = 2;
-    repeated TrackData tracks = 3;
+message GetListByUserIdResponse{
+    repeated types.Track tracks = 1;
 }

@@ -1,0 +1,46 @@
+﻿syntax = "proto3";
+
+package service.iam;
+
+service IAMGrpcService {
+  rpc SignIn(SignInRequest)					returns (SignInResponse);
+  rpc SignUp(SignUpRequest)					returns (SignUpResponse);
+  rpc SignOut(SignOutRequest)				returns (SignOutResponse);
+  rpc ValidateToken(ValidateTokenRequest)	returns (ValidateTokenResponse);
+}
+
+message SignInRequest {
+  string username = 1;
+  string password = 2;
+}
+message SignInResponse {
+  string access_token = 1;
+  string refresh_token = 2;
+  string user_id = 3;
+}
+
+message SignUpRequest {
+  string username = 1;
+  string email = 2;
+  string password = 3;
+}
+message SignUpResponse {
+  bool success = 1;
+  string message = 2;
+}
+
+message ValidateTokenRequest {
+  string token = 1;
+}
+message ValidateTokenResponse {
+  bool is_valid = 1;
+  string user_id = 2;
+  map<string, string> claims = 3;
+}
+
+message SignOutRequest {
+  string refresh_token = 1;
+}
+message SignOutResponse {
+  bool success = 1;
+}

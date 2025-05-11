@@ -1,4 +1,4 @@
-﻿using Soundy.CatalogService.Dto.TrackDto;
+﻿using Soundy.CatalogService.Dto.TrackDtos;
 
 namespace Soundy.CatalogService.Interfaces
 {
@@ -15,5 +15,7 @@ namespace Soundy.CatalogService.Interfaces
         public Task<UpdateResponseDto> UpdateAsync(UpdateRequestDto dto, CancellationToken ct = default);
 
         public Task<DeleteResponseDto> DeleteAsync(DeleteRequestDto dto, CancellationToken ct = default);
+
+        public Task<GetListByUserIdResponseDto> GetListByUserIdRequest(GetListByUserIdRequestDto dto, CancellationToken ct = default);
     }
 }

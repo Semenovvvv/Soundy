@@ -1,0 +1,29 @@
+﻿syntax = "proto3";
+
+package service.album;
+
+import "google/protobuf/timestamp.proto";
+import "Types/type_album.proto";
+
+service AlbumGrpcService {
+  rpc Create(CreateRequest) returns (CreateResponse);
+  rpc AddTrack(AddTrackRequest) returns (AddTrackResponse);
+}
+
+
+message CreateRequest{
+	string title = 1;
+	string avatar_url = 2;
+	string author_id = 3;
+}
+message CreateResponse{
+	types.Album album = 1;
+}
+
+message AddTrackRequest{
+	string id = 1;
+	string track_id = 2;
+}
+message AddTrackResponse{
+	types.Album album = 1;
+}

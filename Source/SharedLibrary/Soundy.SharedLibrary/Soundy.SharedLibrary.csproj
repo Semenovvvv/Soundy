@@ -14,8 +14,4 @@
 		<PackageReference Include="Confluent.Kafka" Version="2.9.0" />
 		<PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="8.0.0" />
 	</ItemGroup>
-
-	<ItemGroup>
-		<Protobuf Include="\Contracts\Models\operation_response.proto" GrpcServices="None" />
-	</ItemGroup>
 </Project>

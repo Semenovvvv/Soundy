@@ -22,6 +22,31 @@ namespace Soundy.CatalogService.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
+            modelBuilder.Entity("Soundy.CatalogService.Entities.Album", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("AuthorId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("AvatarUrl")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Albums");
+                });
+
             modelBuilder.Entity("Soundy.CatalogService.Entities.Playlist", b =>
                 {
                     b.Property<Guid>("Id")
@@ -31,13 +56,16 @@ namespace Soundy.CatalogService.Migrations
                     b.Property<Guid>("AuthorId")
                         .HasColumnType("uuid");
 
+                    b.Property<string>("AvatarUrl")
+                        .HasColumnType("text");
+
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<bool>("IsFavorite")
                         .HasColumnType("boolean");
 
-                    b.Property<string>("Name")
+                    b.Property<string>("Title")
                         .IsRequired()
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)");
@@ -49,11 +77,39 @@ namespace Soundy.CatalogService.Migrations
                     b.ToTable("Playlists");
                 });
 
+            modelBuilder.Entity("Soundy.CatalogService.Entities.PlaylistTrack", b =>
+                {
+                    b.Property<Guid>("PlaylistId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("TrackId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("AddedDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("PlaylistId", "TrackId");
+
+                    b.HasIndex("TrackId");
+
+                    b.ToTable("PlaylistsTracks");
+                });
+
             modelBuilder.Entity("Soundy.CatalogService.Entities.Track", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
+
+                    b.Property<Guid>("AlbumId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("AuthorId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("AvatarUrl")
+                        .IsRequired()
+                        .HasColumnType("text");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
@@ -61,27 +117,21 @@ namespace Soundy.CatalogService.Migrations
                     b.Property<int>("Duration")
                         .HasColumnType("integer");
 
-                    b.Property<Guid>("PlaylistId")
-                        .HasColumnType("uuid");
-
                     b.Property<string>("Title")
                         .IsRequired()
                         .HasMaxLength(50)
                         .HasColumnType("character varying(50)");
 
-                    b.Property<Guid>("UserId")
-                        .HasColumnType("uuid");
-
                     b.HasKey("Id");
 
-                    b.HasIndex("PlaylistId");
+                    b.HasIndex("AlbumId");
 
-                    b.HasIndex("UserId");
+                    b.HasIndex("AuthorId");
 
                     b.ToTable("Tracks");
                 });
 
-            modelBuilder.Entity("Soundy.CatalogService.Entities.Track", b =>
+            modelBuilder.Entity("Soundy.CatalogService.Entities.PlaylistTrack", b =>
                 {
                     b.HasOne("Soundy.CatalogService.Entities.Playlist", "Playlist")
                         .WithMany("Tracks")
@@ -89,12 +139,41 @@ namespace Soundy.CatalogService.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("Soundy.CatalogService.Entities.Track", "Track")
+                        .WithMany("Playlists")
+                        .HasForeignKey("TrackId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.Navigation("Playlist");
+
+                    b.Navigation("Track");
+                });
+
+            modelBuilder.Entity("Soundy.CatalogService.Entities.Track", b =>
+                {
+                    b.HasOne("Soundy.CatalogService.Entities.Album", "Album")
+                        .WithMany("Tracks")
+                        .HasForeignKey("AlbumId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Album");
+                });
+
+            modelBuilder.Entity("Soundy.CatalogService.Entities.Album", b =>
+                {
+                    b.Navigation("Tracks");
                 });
 
             modelBuilder.Entity("Soundy.CatalogService.Entities.Playlist", b =>
                 {
                     b.Navigation("Tracks");
+                });
+
+            modelBuilder.Entity("Soundy.CatalogService.Entities.Track", b =>
+                {
+                    b.Navigation("Playlists");
                 });
 #pragma warning restore 612, 618
         }

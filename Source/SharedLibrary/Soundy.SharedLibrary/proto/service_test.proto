@@ -1,0 +1,14 @@
+﻿syntax = "proto3";
+
+import "second.proto";
+
+service ServiceTest {
+	rpc Test(TestRequest) returns (TestResponse);
+}
+
+message TestRequest{
+	string id = 1;
+}
+message TestResponse{
+	Second second = 1;
+}

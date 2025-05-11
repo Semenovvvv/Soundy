@@ -1,7 +1,9 @@
-﻿using Grpc.Core;
+﻿using AutoMapper;
+using Grpc.Core;
 using Microsoft.EntityFrameworkCore;
 using Soundy.CatalogService.DataAccess;
-using Soundy.CatalogService.Dto.TrackDto;
+using Soundy.CatalogService.Dto;
+using Soundy.CatalogService.Dto.TrackDtos;
 using Soundy.CatalogService.Entities;
 using Soundy.CatalogService.Interfaces;
 
@@ -11,40 +13,27 @@ namespace Soundy.CatalogService.Services
     {
         private readonly IDbContextFactory<DatabaseContext> _dbFactory;
         private readonly ILogger<TrackService> _logger;
+        private readonly IMapper _mapper;
 
-        public TrackService(IDbContextFactory<DatabaseContext> dbFactory, ILogger<TrackService> logger)
+        public TrackService(IDbContextFactory<DatabaseContext> dbFactory, ILogger<TrackService> logger, IMapper mapper)
         {
             _dbFactory = dbFactory;
             _logger = logger;
+            _mapper = mapper;
         }
 
         public async Task<CreateResponseDto> CreateAsync(CreateRequestDto dto, CancellationToken ct = default)
         {
             await using var dbContext = await _dbFactory.CreateDbContextAsync(ct);
 
-            var track = new Track()
-            {
-                PlaylistId = dto.PlaylistId,
-                UserId = dto.UserId,
-                Title = dto.Title,
-                Duration = dto.Duration,
-                CreatedAt = DateTime.UtcNow
-            };
+            var track = _mapper.Map<Track>(dto);
 
             await dbContext.Tracks.AddAsync(track, ct);
             await dbContext.SaveChangesAsync(ct);
 
             return new CreateResponseDto
             {
-                Track = new TrackDto()
-                {
-                    Id = track.Id,
-                    PlaylistId = track.PlaylistId,
-                    UserId = track.UserId,
-                    Title = track.Title,
-                    Duration = track.Duration,
-                    CreatedAt = track.CreatedAt
-                }
+                Track = _mapper.Map<TrackDto>(track)
             };
         }
 
@@ -59,15 +48,7 @@ namespace Soundy.CatalogService.Services
 
             return new GetByIdResponseDto
             {
-                Track = new TrackDto()
-                {
-                    Id = track.Id,
-                    PlaylistId = track.PlaylistId,
-                    UserId = track.UserId,
-                    Title = track.Title,
-                    Duration = track.Duration,
-                    CreatedAt = track.CreatedAt
-                }
+                Track = _mapper.Map<TrackDto>(track)
             };
         }
 
@@ -80,26 +61,14 @@ namespace Soundy.CatalogService.Services
             if (playlist is null)
                 throw new RpcException(new Status(StatusCode.NotFound, $"Playlist with Id {dto.PlaylistId} not found"));
 
-            var tracks = playlist.Tracks.Select(x => new TrackDto()
-            {
-                Id = x.Id,
-                PlaylistId = x.PlaylistId,
-                UserId = x.UserId,
-                Title = x.Title,
-                Duration = x.Duration,
-                CreatedAt = x.CreatedAt
-            }).ToList();
+            var tracks = playlist.Tracks
+                .Select(x => _mapper.Map<TrackDto>(x.Track))
+                .ToList();
 
             return new GetListByPlaylistResponseDto()
             {
                 PlaylistId = dto.PlaylistId,
-                Playlist = new PlaylistDto()
-                {
-                    Id = playlist.Id,
-                    AuthorId = playlist.AuthorId,
-                    Name = playlist.Name,
-                    CreatedAt = playlist.CreatedAt
-                },
+                Playlist = _mapper.Map<PlaylistDto>(playlist),
                 Tracks = tracks
             };
         }
@@ -112,15 +81,7 @@ namespace Soundy.CatalogService.Services
                 .Where(t => EF.Functions.Like(t.Title, $"%{dto.Pattern}%"))
                 .Skip((dto.PageNum - 1) * dto.PageSize)
                 .Take(dto.PageSize)
-                .Select(x => new TrackDto()
-                {
-                    Id = x.Id,
-                    PlaylistId = x.PlaylistId,
-                    UserId = x.UserId,
-                    Title = x.Title,
-                    Duration = x.Duration,
-                    CreatedAt = x.CreatedAt
-                })
+                .Select(x => _mapper.Map<TrackDto>(x))
                 .ToListAsync(ct);
 
             return new SearchResponseDto()
@@ -146,15 +107,7 @@ namespace Soundy.CatalogService.Services
             await dbContext.SaveChangesAsync(ct);
             return new UpdateResponseDto()
             {
-                Track = new TrackDto()
-                {
-                    Id = track.Id,
-                    PlaylistId = track.PlaylistId,
-                    UserId = track.UserId,
-                    Title = track.Title,
-                    Duration = track.Duration,
-                    CreatedAt = track.CreatedAt
-                }
+                Track = _mapper.Map<TrackDto>(track)
             };
         }
 
@@ -173,6 +126,21 @@ namespace Soundy.CatalogService.Services
             return new DeleteResponseDto()
             {
                 Success = true
+            };
+        }
+
+        public async Task<GetListByUserIdResponseDto> GetListByUserIdRequest(GetListByUserIdRequestDto dto, CancellationToken ct = default)
+        {
+            await using var dbContext = await _dbFactory.CreateDbContextAsync(ct);
+
+            var tracks = await dbContext.Tracks
+                .Where(x => x.AuthorId == dto.UserId)
+                .Select(x => _mapper.Map<TrackDto>(x))
+                .ToListAsync(ct);
+
+            return new GetListByUserIdResponseDto()
+            {
+                Tracks = tracks
             };
         }
     }

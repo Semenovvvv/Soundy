@@ -1,21 +1,35 @@
-<Project Sdk="Microsoft.NET.Sdk.Web">
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
 
-  <PropertyGroup>
-    <TargetFramework>net8.0</TargetFramework>
-    <Nullable>enable</Nullable>
-    <ImplicitUsings>enable</ImplicitUsings>
-    <UserSecretsId>10654d4b-b86f-4594-a77e-bfb76636be36</UserSecretsId>
-    <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
-    <DockerfileContext>..\..\..</DockerfileContext>
-  </PropertyGroup>
+	<PropertyGroup>
+		<TargetFramework>net8.0</TargetFramework>
+		<Nullable>enable</Nullable>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<UserSecretsId>10654d4b-b86f-4594-a77e-bfb76636be36</UserSecretsId>
+		<DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
+		<DockerfileContext>..\..\..</DockerfileContext>
+		<ProtoPath>..\..\..\SharedLibrary\Soundy.SharedLibrary\Contracts</ProtoPath>
+	</PropertyGroup>
 
-  <ItemGroup>
-    <PackageReference Include="Grpc.AspNetCore" Version="2.57.0" />
-    <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.19.5" />
-  </ItemGroup>
+	<ItemGroup>
+		<PackageReference Include="AutoMapper" Version="14.0.0" />
+		<PackageReference Include="Grpc.AspNetCore" Version="2.57.0" />
+		<PackageReference Include="Microsoft.EntityFrameworkCore" Version="8.0.8" />
+		<PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="8.0.8" />
+		<PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.21.0" />
+		<PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="8.0.8" />
+	</ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="Services\" />
-  </ItemGroup>
+	<ItemGroup>
+		<ProjectReference Include="..\..\..\SharedLibrary\Soundy.SharedLibrary\Soundy.SharedLibrary.csproj" />
+	</ItemGroup>
 
+	<ItemGroup>
+		<Protobuf Include="$(ProtoPath)\iam.proto" GrpcServices="None" ProtoRoot="$(ProtoPath)" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<Folder Include="Configurations\" />
+		<Folder Include="Interfaces\" />
+		<Folder Include="Services\" />
+	</ItemGroup>
 </Project>

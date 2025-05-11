@@ -9,6 +9,7 @@
     <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
     <DockerfileContext>..\..</DockerfileContext>
     <DockerComposeProjectPath>..\..\docker-compose.dcproj</DockerComposeProjectPath>
+	<ProtoPath>..\..\SharedLibrary\Soundy.SharedLibrary\Contracts</ProtoPath>
   </PropertyGroup>
 
   <ItemGroup>
@@ -20,20 +21,15 @@
   </ItemGroup>
 
 	<ItemGroup>
-		<Protobuf Include="..\..\SharedLibrary\Soundy.SharedLibrary\Contracts\user.proto" GrpcServices="Client" />
-		<Protobuf Include="..\..\SharedLibrary\Soundy.SharedLibrary\Contracts\playlist.proto" GrpcServices="Client" />
-		<Protobuf Include="..\..\SharedLibrary\Soundy.SharedLibrary\Contracts\track.proto" GrpcServices="Client" />
-		<Protobuf Include="..\..\SharedLibrary\Soundy.SharedLibrary\Contracts\trackfile.proto" GrpcServices="Client" />
-		<Protobuf Include="..\..\SharedLibrary\Soundy.SharedLibrary\Contracts\Models\playlist_data.proto" GrpcServices="None" />
-		<Protobuf Include="..\..\SharedLibrary\Soundy.SharedLibrary\Contracts\Models\track_data.proto" GrpcServices="None" />
+		<Protobuf Include="$(ProtoPath)\track.proto" GrpcServices="Client" />
+		<Protobuf Include="$(ProtoPath)\playlist.proto" GrpcServices="Client" ProtoRoot="$(ProtoPath)"/>
+		<Protobuf Include="$(ProtoPath)\album.proto" GrpcServices="Client" ProtoRoot="$(ProtoPath)"/>
+		<Protobuf Include="$(ProtoPath)\user.proto" GrpcServices="Client" />
+		<Protobuf Include="$(ProtoPath)\file.proto" GrpcServices="Client" />
+		<Protobuf Include="$(ProtoPath)\Types\type_album.proto" GrpcServices="None" ProtoRoot="$(ProtoPath)"/>
+		<Protobuf Include="$(ProtoPath)\Types\type_track.proto" GrpcServices="None" ProtoRoot="$(ProtoPath)" />
+		<Protobuf Include="$(ProtoPath)\Types\type_playlist.proto" GrpcServices="None" ProtoRoot="$(ProtoPath)" />
 	</ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="Validators\" />
-    <Folder Include="Dto\" />
-    <Folder Include="Mappers\" />
-    <Folder Include="Extensions\" />
-  </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\..\Services\UserService\Soundy.UserService\Soundy.UserService.csproj" />

@@ -1,7 +1,9 @@
 ﻿using AutoMapper;
 using Google.Protobuf.WellKnownTypes;
-using Soundy.CatalogService.Dto.TrackDto;
-using Soundy.SharedLibrary.Contracts.Track;
+using Service.Track;
+using Soundy.CatalogService.Dto;
+using Soundy.CatalogService.Dto.TrackDtos;
+using Types;
 
 namespace Soundy.CatalogService.Mappers
 {
@@ -10,11 +12,11 @@ namespace Soundy.CatalogService.Mappers
         public TrackMapper()
         {
             CreateMap<CreateRequest, CreateRequestDto>()
-                .ForMember(d => d.Title, o => o.MapFrom(s => s.Title))
-                .ForMember(d => d.UserId, o => o.MapFrom(s => Guid.Parse(s.UserId)))
-                .ForMember(d => d.PlaylistId, o => o.MapFrom(s => Guid.Parse(s.PlaylistId)))
-                .ForMember(d => d.Duration, o => o.MapFrom(s => s.Duration));
-
+                .ForMember(dest => dest.Title, opt => opt.MapFrom(src => src.Title))
+                .ForMember(dest => dest.AuthorId, opt => opt.MapFrom(src => src.AuthorId))
+                .ForMember(dest => dest.AlbumId, opt => opt.MapFrom(src => Guid.Parse(src.AlbumId)))
+                .ForMember(dest => dest.Duration, opt => opt.MapFrom(src => src.Duration))
+                .ForMember(dest => dest.AvatarUrl, opt => opt.MapFrom(src => src.AvatarUrl));
             CreateMap<CreateResponseDto, CreateResponse>()
                 .ForMember(d => d.Track, o => o.MapFrom(s => s.Track));
 
@@ -48,35 +50,37 @@ namespace Soundy.CatalogService.Mappers
                 .ForMember(d => d.PageNum, o => o.MapFrom(s => s.PageNum))
                 .ForMember(d => d.Tracks, o => o.MapFrom(s => s.Tracks));
 
-            CreateMap<GetListByPlaylistRequest, GetListByPlaylistRequestDto>()
-                .ForMember(d => d.PlaylistId, o => o.MapFrom(s => Guid.Parse(s.PlaylistId)));
+            //CreateMap<GetListByPlaylistRequest, GetListByPlaylistRequestDto>()
+            //    .ForMember(d => d.PlaylistId, o => o.MapFrom(s => Guid.Parse(s.PlaylistId)));
 
-            CreateMap<GetListByPlaylistResponseDto, GetListByPlaylistResponse>()
-                .ForMember(d => d.PlaylistId, o => o.MapFrom(s => s.PlaylistId.ToString()))
-                .ForMember(d => d.Playlist, o => o.MapFrom(s => s.Playlist))
-                .ForMember(d => d.Tracks, o => o.MapFrom(s => s.Tracks));
+            //CreateMap<GetListByPlaylistResponseDto, GetListByPlaylistResponse>()
+            //    .ForMember(d => d.PlaylistId, o => o.MapFrom(s => s.PlaylistId.ToString()))
+            //    .ForMember(d => d.Playlist, o => o.MapFrom(s => s.Playlist))
+            //    .ForMember(d => d.Tracks, o => o.MapFrom(s => s.Tracks));
 
-            CreateMap<TrackData, TrackDto>()
-                .ForMember(d => d.Id, o => o.MapFrom(s => Guid.Parse(s.Id)))
-                .ForMember(d => d.UserId, o => o.MapFrom(s => Guid.Parse(s.UserId)))
-                .ForMember(d => d.PlaylistId, o => o.MapFrom(s => Guid.Parse(s.PlaylistId)))
-                .ForMember(d => d.CreatedAt, o => o.MapFrom(s => s.CreatedAt.ToDateTime()))
-                .ForMember(d => d.Duration, o => o.MapFrom(s => s.Duration))
-                .ForMember(d => d.Title, o => o.MapFrom(s => s.Title));
+            CreateMap<Track, TrackDto>()
+                .ForMember(dest => dest.Id, opt => opt.MapFrom(src => Guid.Parse(src.Id)))
+                .ForMember(dest => dest.Title, opt => opt.MapFrom(src => src.Title))
+                .ForMember(dest => dest.AuthorId, opt => opt.MapFrom(src => Guid.Parse(src.AuthorId)))
+                .ForMember(dest => dest.AlbumId, opt => opt.MapFrom(src => Guid.Parse(src.AlbumId)))
+                .ForMember(dest => dest.Duration, opt => opt.MapFrom(src => src.Duration))
+                .ForMember(dest => dest.CreatedAt, opt => opt.MapFrom(src => src.CreatedAt.ToDateTime()))
+                .ForMember(dest => dest.AvatarUrl, opt => opt.MapFrom(src => src.AvatarUrl));
 
-            CreateMap<TrackDto, TrackData>()
-                .ForMember(d => d.Id, o => o.MapFrom(s => s.Id.ToString()))
-                .ForMember(d => d.UserId, o => o.MapFrom(s => s.UserId.ToString()))
-                .ForMember(d => d.PlaylistId, o => o.MapFrom(s => s.PlaylistId.ToString()))
-                .ForMember(d => d.CreatedAt, o => o.MapFrom(s => Timestamp.FromDateTime(s.CreatedAt)))
-                .ForMember(d => d.Duration, o => o.MapFrom(s => s.Duration))
-                .ForMember(d => d.Title, o => o.MapFrom(s => s.Title));
+            CreateMap<TrackDto, Track>()
+                .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.Id.ToString()))
+                .ForMember(dest => dest.Title, opt => opt.MapFrom(src => src.Title))
+                .ForMember(dest => dest.AuthorId, opt => opt.MapFrom(src => src.AuthorId.ToString()))
+                .ForMember(dest => dest.AlbumId, opt => opt.MapFrom(src => src.AlbumId.ToString()))
+                .ForMember(dest => dest.CreatedAt, opt => opt.MapFrom(src => Timestamp.FromDateTime(src.CreatedAt.ToUniversalTime())))
+                .ForMember(dest => dest.Duration, opt => opt.MapFrom(src => src.Duration))
+                .ForMember(dest => dest.AvatarUrl, opt => opt.MapFrom(src => src.AvatarUrl));
 
-            CreateMap<PlaylistDto, PlaylistData>()
-                .ForMember(d => d.Id, o => o.MapFrom(s => s.Id.ToString()))
-                .ForMember(d => d.AuthorId, o => o.MapFrom(s => s.AuthorId.ToString()))
-                .ForMember(d => d.CreatedAt, o => o.MapFrom(s => Timestamp.FromDateTime(s.CreatedAt)))
-                .ForMember(d => d.Name, o => o.MapFrom(s => s.Name));
+            CreateMap<GetListByUserIdRequest, GetListByUserIdRequestDto>()
+                .ForMember(dest => dest.UserId, opt => opt.MapFrom(src => Guid.Parse(src.UserId)));
+
+            CreateMap<GetListByUserIdResponseDto, GetListByUserIdResponse>()
+                .ForMember(dest => dest.Tracks, opt => opt.MapFrom(src => src.Tracks));
         }
     }
 }

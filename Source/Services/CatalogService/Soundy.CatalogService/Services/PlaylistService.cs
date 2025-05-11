@@ -1,7 +1,9 @@
-﻿using Grpc.Core;
+﻿using AutoMapper;
+using Grpc.Core;
 using Microsoft.EntityFrameworkCore;
 using Soundy.CatalogService.DataAccess;
-using Soundy.CatalogService.Dto.PlaylistDto;
+using Soundy.CatalogService.Dto;
+using Soundy.CatalogService.Dto.PlaylistDtos;
 using Soundy.CatalogService.Entities;
 using Soundy.CatalogService.Interfaces;
 using Soundy.SharedLibrary.Contracts.User;
@@ -12,11 +14,13 @@ namespace Soundy.CatalogService.Services
     {
         private readonly IDbContextFactory<DatabaseContext> _dbFactory;
         private readonly UserGrpcService.UserGrpcServiceClient _userService;
+        private readonly IMapper _mapper;
 
-        public PlaylistService(IDbContextFactory<DatabaseContext> dbFactory, UserGrpcService.UserGrpcServiceClient userService)
+        public PlaylistService(IDbContextFactory<DatabaseContext> dbFactory, UserGrpcService.UserGrpcServiceClient userService, IMapper mapper)
         {
             _dbFactory = dbFactory;
             _userService = userService;
+            _mapper = mapper;
         }
 
         public async Task<CreateResponseDto> CreateAsync(CreateRequestDto dto, CancellationToken ct = default)
@@ -25,12 +29,12 @@ namespace Soundy.CatalogService.Services
             {
                 await using var dbContext = await _dbFactory.CreateDbContextAsync(ct);
 
-                await _userService.GetByIdAsync(new GetByIdRequest() { Id = dto.AuthorId.ToString() });
+                await _userService.GetByIdAsync(new GetByIdRequest() { Id = dto.AuthorId.ToString() }, cancellationToken: ct);
 
                 var playlist = new Playlist()
                 {
                     AuthorId = dto.AuthorId,
-                    Name = dto.Name,
+                    Title = dto.Name,
                     CreatedAt = DateTime.UtcNow,
                     IsFavorite = false
                 };
@@ -39,9 +43,7 @@ namespace Soundy.CatalogService.Services
                 await dbContext.SaveChangesAsync(ct);
                 return new CreateResponseDto()
                 {
-                    Id = playlist.Id,
-                    AuthorId = playlist.AuthorId,
-                    Name = playlist.Name
+                    Playlist = _mapper.Map<PlaylistDto>(playlist)
                 };
             }
             catch (RpcException prcEx)
@@ -63,22 +65,16 @@ namespace Soundy.CatalogService.Services
                 var playlist = new Playlist()
                 {
                     AuthorId = dto.AuthorId,
-                    Name = "Favorite",
+                    Title = "Favorite",
                     CreatedAt = DateTime.UtcNow,
-                    IsFavorite = true
+                    IsFavorite = true,
                 };
 
                 await dbContext.Playlists.AddAsync(playlist, ct);
                 await dbContext.SaveChangesAsync(ct);
                 return new CreateFavoriteResponseDto()
                 {
-                    Playlist = new PlaylistDto()
-                    {
-                        Id = playlist.Id,
-                        AuthorId = playlist.AuthorId,
-                        Name = playlist.Name,
-                        CreatedAt = playlist.CreatedAt
-                    }
+                    Playlist = _mapper.Map<PlaylistDto>(playlist)
                 };
             }
             catch (RpcException prcEx)
@@ -97,26 +93,16 @@ namespace Soundy.CatalogService.Services
 
             var playlist = await dbContext.Playlists
                 .AsNoTracking()
+                .Include(x => x.Tracks)
+                .ThenInclude(x => x.Track)
                 .FirstOrDefaultAsync(x => x.Id == dto.Id, ct);
 
             if (playlist is null)
                 throw new RpcException(new Status(StatusCode.NotFound, $"Playlist with Id = {dto.Id} not found"));
 
-            var tracks = await dbContext.Tracks
-                .Where(x => x.PlaylistId == dto.Id)
-                .Select(x => new TrackDto()
-                {
-                    TrackId = x.Id,
-                    Title = x.Title,
-                    CreatedAt = x.CreatedAt
-                }).ToListAsync(ct);
-
             return new GetByIdResponseDto()
             {
-                Id = playlist.Id,
-                AuthorId = playlist.AuthorId,
-                Name = playlist.Name,
-                Tracks = tracks
+                Playlist = _mapper.Map<PlaylistDto>(playlist)
             };
         }
 
@@ -127,18 +113,12 @@ namespace Soundy.CatalogService.Services
             var playlists = await dbContext.Playlists
                 .AsNoTracking()
                 .Where(x => x.AuthorId == dto.AuthorId)
-                .Select(x => new PlaylistDto()
-                {
-                    Id = x.Id,
-                    AuthorId = x.AuthorId,
-                    Name = x.Name
-                })
+                .IgnoreAutoIncludes()
                 .ToListAsync(ct);
 
             return new GetListByAuthorIdResponseDto()
             {
-                AuthorId = dto.AuthorId,
-                Playlists = playlists
+                Playlists = _mapper.Map<IList<PlaylistDto>>(playlists)
             };
         }
 
@@ -148,28 +128,41 @@ namespace Soundy.CatalogService.Services
 
             var playlist = await dbContext.Playlists
                 .AsNoTracking()
+                .Include(x => x.Tracks)
+                .ThenInclude(x => x.Track)
                 .FirstOrDefaultAsync(x => x.AuthorId == dto.AuthorId && x.IsFavorite, ct);
-
-            var playlistDto = new PlaylistDto()
-            {
-                Id = playlist.Id,
-                AuthorId = playlist.AuthorId,
-                Name = playlist.Name,
-                CreatedAt = playlist.CreatedAt
-            };
-
-            var tracks = await dbContext.Tracks.Where(x => x.PlaylistId == playlistDto.Id).Select(x => new TrackDto()
-            {
-                TrackId = x.Id,
-                Title = x.Title,
-                CreatedAt = x.CreatedAt
-            }).ToListAsync(ct);
 
             return new GetFavoriteResponseDto()
             {
-                Playlist = playlistDto,
-                Tracks = tracks
+                Playlist = _mapper.Map<PlaylistDto>(playlist)
             };
+        }
+
+        public async Task<AddTrackResponseDto> AddTrackAsync(AddTrackRequestDto dto, CancellationToken ct = default)
+        {
+            await using var dbContext = await _dbFactory.CreateDbContextAsync(ct);
+
+            var playlist = await dbContext.Playlists
+                               .Include(x => x.Tracks)
+                               .ThenInclude(x => x.Track)
+                               .FirstOrDefaultAsync(x => x.Id == dto.PlaylistId, ct) ??
+                           throw new RpcException(new Status(StatusCode.NotFound, $"Playlist with id {dto.PlaylistId} not found"));
+
+            var track = await dbContext.Tracks.FirstOrDefaultAsync(x => x.Id == dto.TrackId, ct)
+                        ?? throw new RpcException(new Status(StatusCode.NotFound, $"Track with id {dto.TrackId} not found"));
+
+            var pt = new PlaylistTrack()
+            {
+                Playlist = playlist,
+                Track = track,
+                AddedDate = DateTime.UtcNow
+            };
+
+            playlist.Tracks.Add(pt);
+
+            await dbContext.SaveChangesAsync(ct);
+
+            return new AddTrackResponseDto() { Playlist = _mapper.Map<PlaylistDto>(playlist) };
         }
 
         public async Task<UpdateResponseDto> UpdateAsync(UpdateRequestDto dto, CancellationToken ct = default)
@@ -183,14 +176,12 @@ namespace Soundy.CatalogService.Services
                 throw new RpcException(new Status(StatusCode.NotFound, $"Playlist with Id = {dto.Id} not found"));
             }
 
-            playlist.Name = dto.Name;
+            playlist.Title = dto.Name;
             await dbContext.SaveChangesAsync(ct);
 
             return new UpdateResponseDto()
             {
-                Id = dto.Id,
-                AuthorId = playlist.AuthorId,
-                Name = playlist.Name
+                Playlist = _mapper.Map<PlaylistDto>(playlist)
             };
         }
 

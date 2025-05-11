@@ -1,8 +1,8 @@
 ﻿using AutoMapper;
 using Grpc.Core;
-using Soundy.CatalogService.Dto.PlaylistDto;
+using Service.Playlist;
+using Soundy.CatalogService.Dto.PlaylistDtos;
 using Soundy.CatalogService.Interfaces;
-using Soundy.SharedLibrary.Contracts.Playlist;
 
 namespace Soundy.CatalogService.Controllers
 {
@@ -44,6 +44,13 @@ namespace Soundy.CatalogService.Controllers
             var requestDto = _mapper.Map<GetFavoriteRequestDto>(request);
             var responseDto = await _playlistService.GetFavoriteAsync(requestDto, context.CancellationToken);
             return _mapper.Map<GetFavoriteResponse>(responseDto);
+        }
+
+        public override async Task<AddTrackResponse> AddTrack(AddTrackRequest request, ServerCallContext context)
+        {
+            var requestDto = _mapper.Map<AddTrackRequestDto>(request);
+            var responseDto = await _playlistService.AddTrackAsync(requestDto, context.CancellationToken);
+            return _mapper.Map<AddTrackResponse>(responseDto);
         }
 
         public override async Task<UpdateResponse> Update(UpdateRequest request, ServerCallContext context)

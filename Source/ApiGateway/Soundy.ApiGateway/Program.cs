@@ -17,6 +17,7 @@ builder.Services.AddFileServiceClient(configuration);
 builder.Services.AddTrackServiceClient(configuration);
 builder.Services.AddPlaylistServiceClient(configuration);
 builder.Services.AddUserServiceClient(configuration);
+builder.Services.AddAlbumServiceClient(configuration);
 
 builder.Services.AddLogging(loggingBuilder =>
 {

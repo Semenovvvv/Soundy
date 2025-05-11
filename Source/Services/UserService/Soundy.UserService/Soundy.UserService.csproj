@@ -7,15 +7,17 @@
     <UserSecretsId>505ca936-dd11-4a23-8e3a-0a22ee3b502d</UserSecretsId>
     <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
     <DockerfileContext>..\..\..</DockerfileContext>
+	  <ProtoPath>..\..\..\SharedLibrary\Soundy.SharedLibrary\Contracts</ProtoPath>
   </PropertyGroup>
 
 	<ItemGroup>
-		<Protobuf Include="..\..\..\SharedLibrary\Soundy.SharedLibrary\Contracts\user.proto" GrpcServices="Server" />
-		<Protobuf Include="..\..\..\SharedLibrary\Soundy.SharedLibrary\Contracts\playlist.proto" GrpcServices="Client" />
-		<Protobuf Include="..\..\..\SharedLibrary\Soundy.SharedLibrary\Contracts\Models\playlist_data.proto" GrpcServices="None" />
-		<Protobuf Include="..\..\..\SharedLibrary\Soundy.SharedLibrary\Contracts\Models\track_data.proto" GrpcServices="None" />
-		<Protobuf Include="..\..\..\SharedLibrary\Soundy.SharedLibrary\Contracts\Models\operation_response.proto" GrpcServices="None" />
-		<Protobuf Include="..\..\..\SharedLibrary\Soundy.SharedLibrary\Contracts\Models\pagination_info.proto" GrpcServices="None" />
+		<Protobuf Include="$(ProtoPath)\user.proto" GrpcServices="Server" />
+		<Protobuf Include="$(ProtoPath)\playlist.proto" GrpcServices="Client" />
+		<Protobuf Include="$(ProtoPath)\Models\playlist_data.proto" GrpcServices="None" />
+		<Protobuf Include="$(ProtoPath)\Models\track_data.proto" GrpcServices="None" />
+
+		<Protobuf Include="$(ProtoPath)\Types\type_playlist.proto" GrpcServices="None" ProtoRoot="$(ProtoPath)" />
+		<Protobuf Include="$(ProtoPath)\Types\type_track.proto" GrpcServices="None" ProtoRoot="$(ProtoPath)" />
 	</ItemGroup>
 
 	<ItemGroup>
@@ -32,6 +34,10 @@
 
 	<ItemGroup>
 	  <ProjectReference Include="..\..\..\SharedLibrary\Soundy.SharedLibrary\Soundy.SharedLibrary.csproj" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <Folder Include="Migrations\" />
 	</ItemGroup>
 
 </Project>

@@ -1,8 +1,8 @@
 ﻿using AutoMapper;
 using Grpc.Core;
-using Soundy.CatalogService.Dto.TrackDto;
+using Service.Track;
+using Soundy.CatalogService.Dto.TrackDtos;
 using Soundy.CatalogService.Interfaces;
-using Soundy.SharedLibrary.Contracts.Track;
 
 namespace Soundy.CatalogService.Controllers
 {
@@ -33,12 +33,12 @@ namespace Soundy.CatalogService.Controllers
             return _mapper.Map<GetByIdResponse>(responseDto);
         }
 
-        public override async Task<GetListByPlaylistResponse> GetListByPlaylist(GetListByPlaylistRequest request, ServerCallContext context)
-        {
-            var requestDto = _mapper.Map<GetListByPlaylistRequestDto>(request);
-            var responseDto = await _trackService.GetListByPlaylistAsync(requestDto, context.CancellationToken);
-            return _mapper.Map<GetListByPlaylistResponse>(responseDto);
-        }
+        //public override async Task<GetListByPlaylistResponse> GetListByPlaylist(GetListByPlaylistRequest request, ServerCallContext context)
+        //{
+        //    var requestDto = _mapper.Map<GetListByPlaylistRequestDto>(request);
+        //    var responseDto = await _trackService.GetListByPlaylistAsync(requestDto, context.CancellationToken);
+        //    return _mapper.Map<GetListByPlaylistResponse>(responseDto);
+        //}
 
         public override async Task<SearchResponse> Search(SearchRequest request, ServerCallContext context)
         {
@@ -59,6 +59,13 @@ namespace Soundy.CatalogService.Controllers
             var requestDto = _mapper.Map<DeleteRequestDto>(request);
             var responseDto = await _trackService.DeleteAsync(requestDto, context.CancellationToken);
             return _mapper.Map<DeleteResponse>(responseDto);
+        }
+
+        public override async Task<GetListByUserIdResponse> GetListByUserId(GetListByUserIdRequest request, ServerCallContext context)
+        {
+            var requestDto = _mapper.Map<GetListByUserIdRequestDto>(request);
+            var responseDto = await _trackService.GetListByUserIdRequest(requestDto, context.CancellationToken);
+            return _mapper.Map<GetListByUserIdResponse>(responseDto);
         }
     }
 }

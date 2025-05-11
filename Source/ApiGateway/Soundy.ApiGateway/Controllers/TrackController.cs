@@ -1,5 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using Soundy.SharedLibrary.Contracts.Track;
+using Service.Track;
 
 namespace Soundy.ApiGateway.Controllers;
 
@@ -18,7 +18,7 @@ public class TrackController : ControllerBase
     /// Создает новый трек.
     /// </summary>
     [HttpPost]
-    public async Task<IActionResult> CreateAsync([FromBody] Soundy.SharedLibrary.Contracts.Track.CreateRequest dto, CancellationToken ct = default)
+    public async Task<IActionResult> CreateAsync([FromBody] CreateRequest dto, CancellationToken ct = default)
     {
         var response = await _trackService.CreateAsync(dto, cancellationToken: ct);
         return Ok(response);
@@ -42,12 +42,12 @@ public class TrackController : ControllerBase
     /// <summary>
     /// Получает список треков по ID плейлиста.
     /// </summary>
-    [HttpGet("playlist/{playlistId}")]
-    public async Task<IActionResult> GetListByPlaylistAsync([FromRoute] GetListByPlaylistRequest dto, CancellationToken ct = default)
-    {
-        var response = await _trackService.GetListByPlaylistAsync(dto, cancellationToken: ct);
-        return Ok(response);
-    }
+    //[HttpGet("playlist/{playlistId}")]
+    //public async Task<IActionResult> GetListByPlaylistAsync([FromRoute] GetListByPlaylistRequest dto, CancellationToken ct = default)
+    //{
+    //    var response = await _trackService.GetListByPlaylistAsync(dto, cancellationToken: ct);
+    //    return Ok(response);
+    //}
 
     /// <summary>
     /// Выполняет поиск треков.

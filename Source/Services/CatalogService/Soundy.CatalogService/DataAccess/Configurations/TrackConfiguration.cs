@@ -10,15 +10,22 @@ namespace Soundy.CatalogService.DataAccess.Configurations
         {
             builder.HasKey(x => x.Id);
 
-            builder.HasIndex(x => x.PlaylistId);
-            builder.HasIndex(x => x.UserId);
+            builder.HasIndex(x => x.AlbumId);
+            builder.HasIndex(x => x.AuthorId);
+
+            builder.HasOne(x => x.Album)
+                .WithMany(x => x.Tracks)
+                .HasForeignKey(x => x.AlbumId);
 
             builder.Property(x => x.Id).IsRequired();
-            builder.Property(x => x.PlaylistId).IsRequired();
-            builder.Property(x => x.UserId).IsRequired();
+            builder.Property(x => x.AlbumId).IsRequired();
+            builder.Property(x => x.AuthorId).IsRequired();
             builder.Property(x => x.Duration).IsRequired();
             builder.Property(x => x.Title).HasMaxLength(50).IsRequired();
             builder.Property(x => x.CreatedAt).IsRequired();
+
+            builder.Navigation(x => x.Album)
+                .AutoInclude();
         }
     }
 }

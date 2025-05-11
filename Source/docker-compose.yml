@@ -96,6 +96,44 @@ services:
     networks:
       - app-network
 
+  iam_service:
+    image: ${DOCKER_REGISTRY-}iamservice
+    build:
+      context: .
+      dockerfile: Services/IAM/Soundy.IAM/Dockerfile
+    environment:
+      - USER_SERVICE_URI=${USER_SERVICE_URI}
+      - IAM_SERVICE_PORT=${IAM_SERVICE_PORT}
+      - IAM_SERVICE_POSTGRES_HOST=${IAM_SERVICE_POSTGRES_HOST}
+      - IAM_SERVICE_POSTGRES_DB=${IAM_SERVICE_POSTGRES_DB}
+      - IAM_SERVICE_POSTGRES_PORT=${IAM_SERVICE_POSTGRES_PORT} 
+      - IAM_SERVICE_POSTGRES_USER=${IAM_SERVICE_POSTGRES_USER} 
+      - IAM_SERVICE_POSTGRES_PASSWORD=${IAM_SERVICE_POSTGRES_PASSWORD} 
+    ports:
+      - "${IAM_SERVICE_PORT}:${IAM_SERVICE_PORT}"
+    depends_on:
+      - iam_db_pgsql
+    networks:
+      - app-network
+
+  iam_db_pgsql: 
+    image: postgres:latest
+    expose:
+      - "${IAM_SERVICE_POSTGRES_PORT}"
+    ports:
+      - "${IAM_SERVICE_POSTGRES_PORT}:${IAM_SERVICE_POSTGRES_PORT}"
+    environment:
+      - POSTGRES_DB=${CATALOG_SERVICE_POSTGRES_DB}
+      - POSTGRES_USER=${CATALOG_SERVICE_POSTGRES_USER}
+      - POSTGRES_PASSWORD=${CATALOG_SERVICE_POSTGRES_PASSWORD}
+      - IAM_SERVICE_POSTGRES_PORT=${IAM_SERVICE_POSTGRES_PORT}
+    volumes:
+      - iam_db_pgsql_data:/var/lib/postgresql/data
+    restart: always
+    command: -p ${IAM_SERVICE_POSTGRES_PORT}
+    networks:
+      - app-network
+
   file_service:
     image: ${DOCKER_REGISTRY-}fileservice
     build:
@@ -128,3 +166,4 @@ volumes:
   user_db_pgsql_data:
   catalog_db_pgsql_data:
   minio_data:
+  iam_db_pgsql:

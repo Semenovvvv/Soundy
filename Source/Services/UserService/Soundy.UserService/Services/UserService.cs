@@ -1,6 +1,6 @@
 ﻿using Grpc.Core;
 using Microsoft.EntityFrameworkCore;
-using Soundy.SharedLibrary.Contracts.Playlist;
+using Service.Playlist;
 using Soundy.UserService.DataAccess;
 using Soundy.UserService.Dto;
 using Soundy.UserService.Entities;
@@ -19,6 +19,7 @@ namespace Soundy.UserService.Services
             _dbFactory = dbFactory;
         }
 
+        // TODO Вынести создание плейлиста в api gateway
         public async Task<CreateResponseDto> CreateUserAsync(CreateRequestDto dto, CancellationToken ct = default)
         {
             try
@@ -26,7 +27,7 @@ namespace Soundy.UserService.Services
                 var user = new User()
                 {
                     Email = dto.Email,
-                    UserName = dto.UserName,
+                    Name = dto.UserName,
                     CreatedAt = DateTime.UtcNow
                 };
 
@@ -43,7 +44,7 @@ namespace Soundy.UserService.Services
                 return new CreateResponseDto()
                 {
                     Id = user.Id,
-                    UserName = user.UserName,
+                    UserName = user.Name,
                     Email = user.Email
                 };
             }
@@ -71,7 +72,7 @@ namespace Soundy.UserService.Services
             return new GetByIdResponseDto()
             {
                 Id = user.Id,
-                UserName = user.UserName,
+                UserName = user.Name,
                 Email = user.Email
             };
         }
@@ -87,7 +88,7 @@ namespace Soundy.UserService.Services
             if (string.IsNullOrEmpty(dto.Email) || string.IsNullOrEmpty(dto.UserName))
                 throw new RpcException(new Status(StatusCode.InvalidArgument, $"Arguments null"));
 
-            user.UserName = dto.UserName;
+            user.Name = dto.UserName;
             user.Email = dto.Email;
 
             await dbContext.SaveChangesAsync(ct);
@@ -96,7 +97,7 @@ namespace Soundy.UserService.Services
             {
                 Id = user.Id,
                 Email = user.Email,
-                UserName = user.UserName
+                UserName = user.Name
             };
         }
 
@@ -130,17 +131,17 @@ namespace Soundy.UserService.Services
 
             var query = dbContext.Users
                 .AsNoTracking()
-                .Where(user => EF.Functions.Like(user.UserName, $"%{dto.Pattern}%"));
+                .Where(user => EF.Functions.Like(user.Name, $"%{dto.Pattern}%"));
 
             var users = await query
-                .OrderBy(u => u.UserName)
+                .OrderBy(u => u.Name)
                 .Skip((dto.PageNumber - 1) * dto.PageSize)
                 .Take(dto.PageSize)
                 .Select(x => new UserDto()
                 {
                     Id = x.Id,
                     Email = x.Email,
-                    UserName = x.UserName
+                    UserName = x.Name
                 })
                 .ToListAsync(ct);
 

@@ -1,6 +1,8 @@
 ﻿using AutoMapper;
-using Soundy.SharedLibrary.Contracts.User;
+using Google.Protobuf.WellKnownTypes;
+using Service.User;
 using Soundy.UserService.Dto;
+using Types;
 
 namespace Soundy.UserService.Mappers
 {
@@ -10,13 +12,13 @@ namespace Soundy.UserService.Mappers
         {
             // CreateUser
             CreateMap<CreateRequest, CreateRequestDto>()
-                .ForMember(dto => dto.UserName, x => x.MapFrom(src => src.Username))
-                .ForMember(dto => dto.Email, x => x.MapFrom(src => src.Email));
+                .ForMember(dto => dto.Name, x => x.MapFrom(src => src.Name))
+                .ForMember(dto => dto.Bio, x => x.MapFrom(src => src.Bio))
+                .ForMember(dto => dto.Email, x => x.MapFrom(src => src.Email))
+                .ForMember(dto => dto.Id, x => x.MapFrom(src => src.Id));
 
             CreateMap<CreateResponseDto, CreateResponse>()
-                .ForMember(src => src.Id, x => x.MapFrom(dto => dto.Id.ToString()))
-                .ForMember(src => src.Username, x => x.MapFrom(dto => dto.UserName))
-                .ForMember(src => src.Email, x => x.MapFrom(dto => dto.Email));
+                .ForMember(src => src.User, x => x.MapFrom(dto => dto.User));
 
             // DeleteUser
             CreateMap<DeleteRequest, DeleteRequestDto>()
@@ -30,9 +32,7 @@ namespace Soundy.UserService.Mappers
                 .ForMember(dto => dto.Id, x => x.MapFrom(src => Guid.Parse(src.Id)));
 
             CreateMap<GetByIdResponseDto, GetByIdResponse>()
-                .ForMember(src => src.Id, x => x.MapFrom(dto => dto.Id.ToString()))
-                .ForMember(src => src.Username, x => x.MapFrom(dto => dto.UserName))
-                .ForMember(src => src.Email, x => x.MapFrom(dto => dto.Email));
+                .ForMember(src => src.User, x => x.MapFrom(dto => dto.User));
 
             // SearchUsers
             CreateMap<SearchRequest, SearchRequestDto>()
@@ -52,15 +52,31 @@ namespace Soundy.UserService.Mappers
                 .ForMember(dto => dto.Email, x => x.MapFrom(src => src.Email));
 
             CreateMap<UpdateResponseDto, UpdateResponse>()
-                .ForMember(src => src.Id, x => x.MapFrom(dto => dto.Id.ToString()))
-                .ForMember(src => src.Username, x => x.MapFrom(dto => dto.UserName))
-                .ForMember(src => src.Email, x => x.MapFrom(dto => dto.Email));
+                .ForMember(src => src.User, x => x.MapFrom(dto => dto.User));
 
-            // UserData
-            CreateMap<UserDto, UserData>()
-                .ForMember(data => data.Id, x => x.MapFrom(dto => dto.Id.ToString()))
-                .ForMember(data => data.Username, x => x.MapFrom(dto => dto.UserName))
-                .ForMember(data => data.Email, x => x.MapFrom(dto => dto.Email));
+            CreateMap<Types.User, UserDto>()
+                .ForMember(d => d.Id, x => x.MapFrom(src => Guid.Parse(src.Id)))
+                .ForMember(d => d.Email, x => x.MapFrom(src => src.Email))
+                .ForMember(d => d.Name, x => x.MapFrom(src => src.Name))
+                .ForMember(d => d.CreatedAt, x => x.MapFrom(src => src.CreatedAt.ToDateTime()))
+                .ForMember(d => d.AvatarUrl, x => x.MapFrom(src => src.AvatarUrl))
+                .ForMember(d => d.Bio, x => x.MapFrom(src => src.Bio));
+
+            CreateMap<UserDto, Types.User>()
+                .ForMember(d => d.Id, x => x.MapFrom(src => src.Id.ToString()))
+                .ForMember(d => d.Email, x => x.MapFrom(src => src.Email))
+                .ForMember(d => d.Name, x => x.MapFrom(src => src.Name))
+                .ForMember(d => d.CreatedAt, x => x.MapFrom(src => Timestamp.FromDateTime(src.CreatedAt)))
+                .ForMember(d => d.AvatarUrl, x => x.MapFrom(src => src.AvatarUrl))
+                .ForMember(d => d.Bio, x => x.MapFrom(src => src.Bio));
+
+            CreateMap<Entities.User, UserDto>()
+                .ForMember(d => d.Id, x => x.MapFrom(src => src.Id))
+                .ForMember(d => d.Email, x => x.MapFrom(src => src.Email))
+                .ForMember(d => d.Name, x => x.MapFrom(src => src.Name))
+                .ForMember(d => d.CreatedAt, x => x.MapFrom(src => src.CreatedAt))
+                .ForMember(d => d.AvatarUrl, x => x.MapFrom(src => src.AvatarUrl))
+                .ForMember(d => d.Bio, x => x.MapFrom(src => src.Bio));
         }
     }
 }

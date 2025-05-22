@@ -12,6 +12,7 @@ services:
       USER_SERVICE_URI: ${USER_SERVICE_URI}
       CATALOG_SERVICE_URI: ${CATALOG_SERVICE_URI}
       FILE_SERVICE_URI: ${FILE_SERVICE_URI}
+      IAM_SERVICE_URI: ${IAM_SERVICE_URI}
       DOTNET_ENVIRONMENT: "Development"
     ports:
       - "${API_GATEWAY_PORT}:${API_GATEWAY_PORT}"
@@ -62,8 +63,6 @@ services:
     build:
       context: .
       dockerfile: Services/CatalogService/Soundy.CatalogService/Dockerfile
-      # context: ${CATALOG_SERVICE_PATH}
-      # dockerfile: ./Dockerfile
     environment:
       - USER_SERVICE_URI=${USER_SERVICE_URI}
       - CATALOG_SERVICE_PORT=${CATALOG_SERVICE_PORT}
@@ -166,4 +165,4 @@ volumes:
   user_db_pgsql_data:
   catalog_db_pgsql_data:
   minio_data:
-  iam_db_pgsql:
+  iam_db_pgsql_data:

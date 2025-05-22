@@ -13,26 +13,31 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.0.8" />
     <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.19.5" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.4.0" />
     <PackageReference Include="Grpc.AspNetCore" Version="2.66.0" />
     <PackageReference Include="Grpc.Net.Client" Version="2.66.0" />
     <PackageReference Include="AutoMapper" Version="14.0.0" />
+    <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="7.1.2" />
   </ItemGroup>
 
 	<ItemGroup>
 		<Protobuf Include="$(ProtoPath)\track.proto" GrpcServices="Client" />
-		<Protobuf Include="$(ProtoPath)\playlist.proto" GrpcServices="Client" ProtoRoot="$(ProtoPath)"/>
-		<Protobuf Include="$(ProtoPath)\album.proto" GrpcServices="Client" ProtoRoot="$(ProtoPath)"/>
+		<Protobuf Include="$(ProtoPath)\playlist.proto" GrpcServices="Client" ProtoRoot="$(ProtoPath)" />
+		<Protobuf Include="$(ProtoPath)\album.proto" GrpcServices="Client" ProtoRoot="$(ProtoPath)" />
 		<Protobuf Include="$(ProtoPath)\user.proto" GrpcServices="Client" />
 		<Protobuf Include="$(ProtoPath)\file.proto" GrpcServices="Client" />
-		<Protobuf Include="$(ProtoPath)\Types\type_album.proto" GrpcServices="None" ProtoRoot="$(ProtoPath)"/>
+		<Protobuf Include="$(ProtoPath)\iam.proto" GrpcServices="Client" />
+		<Protobuf Include="$(ProtoPath)\Types\type_album.proto" GrpcServices="None" ProtoRoot="$(ProtoPath)" />
 		<Protobuf Include="$(ProtoPath)\Types\type_track.proto" GrpcServices="None" ProtoRoot="$(ProtoPath)" />
 		<Protobuf Include="$(ProtoPath)\Types\type_playlist.proto" GrpcServices="None" ProtoRoot="$(ProtoPath)" />
+		<Protobuf Include="$(ProtoPath)\Types\type_user.proto" GrpcServices="None" ProtoRoot="$(ProtoPath)" />
 	</ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\..\Services\UserService\Soundy.UserService\Soundy.UserService.csproj" />
+    <ProjectReference Include="..\..\SharedLibrary\Soundy.SharedLibrary\Soundy.SharedLibrary.csproj" />
   </ItemGroup>
 
 </Project>

@@ -1,6 +1,8 @@
 ﻿syntax = "proto3";
 
-option csharp_namespace = "Soundy.SharedLibrary.Contracts.User";
+package service.user;
+
+import "Types/type_user.proto";
 
 service UserGrpcService {
     rpc Create (CreateRequest) returns (CreateResponse);
@@ -10,14 +12,21 @@ service UserGrpcService {
     rpc Search (SearchRequest) returns (SearchResponse);
 }
 
-//======== Requests ========
 message CreateRequest{
-    string username = 1;
-    string email = 3;
+    string name = 1;
+    string email = 2;
+    optional string bio = 3;
+    optional string id = 4;
+}
+message CreateResponse{
+    types.User user = 1;
 }
 
 message GetByIdRequest {
     string id = 1;
+}
+message GetByIdResponse {
+    types.User user = 1;
 }
 
 message UpdateRequest {
@@ -25,9 +34,15 @@ message UpdateRequest {
     string username = 2;
     string email = 3;
 }
+message UpdateResponse {
+    types.User user = 1;
+}
 
 message DeleteRequest {
     string id = 1;
+}
+message DeleteResponse{
+    bool is_success = 1;
 }
 
 message SearchRequest {
@@ -35,38 +50,8 @@ message SearchRequest {
     int32 page_number = 2;
     int32 page_size = 3;
 }
-
-//======== Responses ========
-message CreateResponse{
-    string id = 1;
-    string username = 2;
-    string email = 3;
-}
-
-message UpdateResponse {
-    string id = 1;
-    string username = 2;
-    string email = 3;
-}
-
-message GetByIdResponse {
-    string id = 1;
-    string username = 2;
-    string email = 3;
-}
-
-message DeleteResponse{
-    bool is_success = 1;
-}
-
 message SearchResponse {
-    repeated UserData users = 1;
-    int32 page_number = 2;
-    int32 page_size = 3;
-}
-
-message UserData{
-    string id = 1;
-    string username = 2;
-    string email = 3;
+    int32 page_number = 1;
+    int32 page_size = 2;
+    repeated types.User users = 3;
 }

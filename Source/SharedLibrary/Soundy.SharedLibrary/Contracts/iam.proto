@@ -26,7 +26,6 @@ message SignUpRequest {
 }
 message SignUpResponse {
   bool success = 1;
-  string message = 2;
 }
 
 message ValidateTokenRequest {
@@ -35,7 +34,6 @@ message ValidateTokenRequest {
 message ValidateTokenResponse {
   bool is_valid = 1;
   string user_id = 2;
-  map<string, string> claims = 3;
 }
 
 message SignOutRequest {

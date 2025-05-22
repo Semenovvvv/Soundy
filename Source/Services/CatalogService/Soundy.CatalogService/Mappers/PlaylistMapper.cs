@@ -80,7 +80,7 @@ namespace Soundy.CatalogService.Mappers
 
             CreateMap<Playlist, PlaylistDto>()
                 .ForMember(d => d.Id, o => o.MapFrom(s => Guid.Parse(s.Id)))
-                .ForMember(d => d.AuthorId, o => o.MapFrom(s => Guid.Parse(s.AuthorId)))
+                .ForMember(d => d.AuthorId, o => o.MapFrom(s => Guid.Parse(s.User.Id)))
                 .ForMember(d => d.Title, o => o.MapFrom(s => s.Title))
                 .ForMember(d => d.CreatedAt, o => o.MapFrom(s => s.CreatedAt.ToDateTime()))
                 .ForMember(d => d.AvatarUrl, o => o.MapFrom(s => s.AvatarUrl))
@@ -89,7 +89,7 @@ namespace Soundy.CatalogService.Mappers
 
             CreateMap<PlaylistDto, Playlist>()
                 .ForMember(d => d.Id, o => o.MapFrom(s => s.Id.ToString()))
-                .ForMember(d => d.AuthorId, o => o.MapFrom(s => s.AuthorId.ToString()))
+                .ForMember(d => d.User, o => o.MapFrom(s => s.Author))
                 .ForMember(d => d.Title, o => o.MapFrom(s => s.Title))
                 .ForMember(d => d.CreatedAt, o => o.MapFrom(s => Timestamp.FromDateTime(s.CreatedAt.ToUniversalTime())))
                 .ForMember(d => d.AvatarUrl, o => o.MapFrom(s => s.AvatarUrl ?? string.Empty))
@@ -100,7 +100,7 @@ namespace Soundy.CatalogService.Mappers
 
             CreateMap<Track, TrackDto>()
                 .ForMember(d => d.Id, o => o.MapFrom(s => Guid.Parse(s.Id)))
-                .ForMember(d => d.AuthorId, o => o.MapFrom(s => Guid.Parse(s.AuthorId)))
+                .ForMember(d => d.AuthorId, o => o.MapFrom(s => Guid.Parse(s.User.Id)))
                 .ForMember(d => d.AlbumId, o => o.MapFrom(s => Guid.Parse(s.AlbumId)))
                 .ForMember(d => d.Title, o => o.MapFrom(s => s.Title))
                 .ForMember(d => d.CreatedAt, o => o.MapFrom(s => s.CreatedAt.ToDateTime()))
@@ -109,7 +109,7 @@ namespace Soundy.CatalogService.Mappers
 
             CreateMap<TrackDto, Track>()
                 .ForMember(d => d.Id, o => o.MapFrom(s => s.Id.ToString()))
-                .ForMember(d => d.AuthorId, o => o.MapFrom(s => s.AuthorId.ToString()))
+                .ForMember(d => d.User, o => o.MapFrom(s => s.Author))
                 .ForMember(d => d.AlbumId, o => o.MapFrom(s => s.AlbumId.ToString()))
                 .ForMember(d => d.Title, o => o.MapFrom(s => s.Title))
                 .ForMember(d => d.CreatedAt, o => o.MapFrom(s => Timestamp.FromDateTime(s.CreatedAt)))

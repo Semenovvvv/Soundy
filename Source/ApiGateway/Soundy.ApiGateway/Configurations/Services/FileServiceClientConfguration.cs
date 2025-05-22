@@ -1,4 +1,6 @@
-﻿namespace Soundy.ApiGateway.Configurations.Services
+﻿using Service.File;
+
+namespace Soundy.ApiGateway.Configurations.Services
 {
     public static class FileServiceClientConfguration
     {

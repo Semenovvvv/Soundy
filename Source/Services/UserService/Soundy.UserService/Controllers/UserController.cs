@@ -1,6 +1,6 @@
 ﻿using AutoMapper;
 using Grpc.Core;
-using Soundy.SharedLibrary.Contracts.User;
+using Service.User;
 using Soundy.UserService.Dto;
 using Soundy.UserService.Interfaces;
 

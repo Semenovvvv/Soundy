@@ -3,11 +3,12 @@
 package types;
 
 import "google/protobuf/timestamp.proto";
+import "Types/type_user.proto";
 
 message Track {
     string id = 1;
     string title = 2;
-    string author_id = 3;
+    types.User user = 3;
     string album_id = 4;
     google.protobuf.Timestamp created_at = 5;
     int32 duration = 6;

@@ -7,17 +7,16 @@
     <UserSecretsId>505ca936-dd11-4a23-8e3a-0a22ee3b502d</UserSecretsId>
     <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
     <DockerfileContext>..\..\..</DockerfileContext>
-	  <ProtoPath>..\..\..\SharedLibrary\Soundy.SharedLibrary\Contracts</ProtoPath>
+	<ProtoPath>..\..\..\SharedLibrary\Soundy.SharedLibrary\Contracts</ProtoPath>
   </PropertyGroup>
 
 	<ItemGroup>
 		<Protobuf Include="$(ProtoPath)\user.proto" GrpcServices="Server" />
 		<Protobuf Include="$(ProtoPath)\playlist.proto" GrpcServices="Client" />
-		<Protobuf Include="$(ProtoPath)\Models\playlist_data.proto" GrpcServices="None" />
-		<Protobuf Include="$(ProtoPath)\Models\track_data.proto" GrpcServices="None" />
 
 		<Protobuf Include="$(ProtoPath)\Types\type_playlist.proto" GrpcServices="None" ProtoRoot="$(ProtoPath)" />
 		<Protobuf Include="$(ProtoPath)\Types\type_track.proto" GrpcServices="None" ProtoRoot="$(ProtoPath)" />
+		<Protobuf Include="$(ProtoPath)\Types\type_user.proto" GrpcServices="None" ProtoRoot="$(ProtoPath)" />
 	</ItemGroup>
 
 	<ItemGroup>

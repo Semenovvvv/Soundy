@@ -8,6 +8,7 @@ import "Types/type_album.proto";
 service AlbumGrpcService {
   rpc Create(CreateRequest) returns (CreateResponse);
   rpc AddTrack(AddTrackRequest) returns (AddTrackResponse);
+  rpc GetById(GetByIdRequest) returns (GetByIdResponse);
 }
 
 
@@ -25,5 +26,12 @@ message AddTrackRequest{
 	string track_id = 2;
 }
 message AddTrackResponse{
+	types.Album album = 1;
+}
+
+message GetByIdRequest{
+	string id = 1;
+}
+message GetByIdResponse{
 	types.Album album = 1;
 }

@@ -12,8 +12,8 @@ using Soundy.UserService.DataAccess;
 namespace Soundy.UserService.Migrations
 {
     [DbContext(typeof(DatabaseContext))]
-    [Migration("20250511191951_AddPlaylistTrack")]
-    partial class AddPlaylistTrack
+    [Migration("20250515201150_Init")]
+    partial class Init
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)

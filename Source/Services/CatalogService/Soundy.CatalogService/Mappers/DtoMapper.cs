@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using Google.Protobuf.WellKnownTypes;
 using Soundy.CatalogService.Dto;
 using Soundy.CatalogService.Entities;
 
@@ -101,6 +102,22 @@ namespace Soundy.CatalogService.Mappers
                 .ForMember(dest => dest.Title, opt => opt.MapFrom(src => src.Title))
                 .ForMember(dest => dest.Tracks, opt => opt.MapFrom(src => src.Tracks))
                 .ForMember(dest => dest.TrackCount, opt => opt.MapFrom(src => src.TrackCount));
+
+            CreateMap<Types.User, User>()
+                .ForMember(d => d.Id, x => x.MapFrom(src => Guid.Parse(src.Id)))
+                .ForMember(d => d.Email, x => x.MapFrom(src => src.Email))
+                .ForMember(d => d.Name, x => x.MapFrom(src => src.Name))
+                .ForMember(d => d.CreatedAt, x => x.MapFrom(src => src.CreatedAt.ToDateTime()))
+                .ForMember(d => d.AvatarUrl, x => x.MapFrom(src => src.AvatarUrl))
+                .ForMember(d => d.Bio, x => x.MapFrom(src => src.Bio));
+
+            CreateMap<User, Types.User>()
+                .ForMember(d => d.Id, x => x.MapFrom(src => src.Id.ToString()))
+                .ForMember(d => d.Email, x => x.MapFrom(src => src.Email))
+                .ForMember(d => d.Name, x => x.MapFrom(src => src.Name))
+                .ForMember(d => d.CreatedAt, x => x.MapFrom(src => Timestamp.FromDateTime(src.CreatedAt)))
+                .ForMember(d => d.AvatarUrl, x => x.MapFrom(src => src.AvatarUrl))
+                .ForMember(d => d.Bio, x => x.MapFrom(src => src.Bio));
         }
     }
 }

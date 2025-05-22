@@ -1,4 +1,4 @@
-﻿using Soundy.SharedLibrary.Contracts.User;
+﻿using Service.User;
 
 namespace Soundy.ApiGateway.Configurations.Services
 {

@@ -21,13 +21,13 @@
 
 	<ItemGroup>
 		<Protobuf Include="$(ProtoPath)\track.proto" GrpcServices="Server" />
-		<Protobuf Include="$(ProtoPath)\playlist.proto" GrpcServices="Server" ProtoRoot="$(ProtoPath)"/>
-		<Protobuf Include="$(ProtoPath)\album.proto" GrpcServices="Server" ProtoRoot="$(ProtoPath)"/>
+		<Protobuf Include="$(ProtoPath)\playlist.proto" GrpcServices="Server" ProtoRoot="$(ProtoPath)" />
+		<Protobuf Include="$(ProtoPath)\album.proto" GrpcServices="Server" ProtoRoot="$(ProtoPath)" />
 		<Protobuf Include="$(ProtoPath)\user.proto" GrpcServices="Client" />
-		<Protobuf Include="$(ProtoPath)\Types\type_album.proto" GrpcServices="None" ProtoRoot="$(ProtoPath)"/>
+		<Protobuf Include="$(ProtoPath)\Types\type_album.proto" GrpcServices="None" ProtoRoot="$(ProtoPath)" />
 		<Protobuf Include="$(ProtoPath)\Types\type_track.proto" GrpcServices="None" ProtoRoot="$(ProtoPath)" />
 		<Protobuf Include="$(ProtoPath)\Types\type_playlist.proto" GrpcServices="None" ProtoRoot="$(ProtoPath)" />
-
+		<Protobuf Include="$(ProtoPath)\Types\type_user.proto" GrpcServices="None" ProtoRoot="$(ProtoPath)" />
 	</ItemGroup>
 
 	<ItemGroup>

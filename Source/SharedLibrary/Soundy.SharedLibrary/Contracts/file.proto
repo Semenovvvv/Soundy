@@ -1,56 +1,46 @@
 syntax = "proto3";
 
+package service.file;
+
 service FileGrpcService {
-  rpc UploadTrackFile(stream UploadTrackFileRequest) returns (UploadTrackFileResponse);
-  rpc DownloadTrackFile(DownloadTrackFileRequest) returns (stream DownloadTrackFileResponse);
-
-  rpc UploadImage(stream UploadImageRequest) returns (UploadImageResponse);
-  rpc DownloadImage(DownloadImageRequest) returns (stream DownloadImageResponse);
+  rpc UploadTrack(stream UploadTrackRequest) returns (UploadTrackResponse);
+  rpc GetTrackStream (GetTrackRequest) returns (stream GetTrackResponse);
+  rpc UploadImage(UploadImageRequest) returns (UploadImageResponse);
+  rpc DownloadImage(DownloadImageRequest) returns (DownloadImageResponse);
 }
 
-message UploadTrackFileRequest {
-	string track_id = 1;
-	bytes chunk = 2;
-}
-message UploadTrackFileResponse {
-  string file_url = 1;
-}
-
-message DownloadTrackFileRequest {
+message UploadTrackRequest {
   string track_id = 1;
+  string file_name = 2;
+  string content_type = 3;
+  bytes chunk = 4;
 }
-message DownloadTrackFileResponse {
-  bytes chunk = 1;
-}
-
-message UploadImageRequest {
-  oneof data {
-    ImageMetadata metadata = 1;
-    bytes chunk = 2;
-  }
-}
-message UploadImageResponse {
+message UploadTrackResponse {
   string url = 1;
 }
 
+message GetTrackRequest {
+  string track_id = 1;
+  string file_name = 2; // index.m3u8 или segment_000.ts
+}
+
+message GetTrackResponse {
+  bytes chunk = 1;
+  string content_type = 2;
+}
+
+message UploadImageRequest {
+	string content_type = 1;
+	bytes chunk = 2;
+}
+message UploadImageResponse {
+	string url = 1;
+}
+
 message DownloadImageRequest {
-  string entity_type = 1;
-  string entity_id = 2;
+	string image_id = 1;
 }
 message DownloadImageResponse {
-  bytes chunk = 1;
-}
-
-enum EntityType {
-	TRACK = 0;
-	ALBUM = 1;
-	PLAYLIST = 2;
-	USER = 3;
-}
-
-message ImageMetadata {
-  string EntityType = 1; // track, album, user, playlist
-  string entity_id = 2;
-  string file_name = 3;
-  string content_type = 4;
+	bytes chunk = 1;
+    string content_type = 2;
 }

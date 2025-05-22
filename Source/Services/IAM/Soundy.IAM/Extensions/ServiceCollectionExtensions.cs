@@ -21,7 +21,7 @@ namespace Soundy.IAM.Extensions
                                    $"Username={configuration[user] ?? throw new ArgumentNullException(user)};" +
                                    $"Password={configuration[password] ?? throw new ArgumentNullException(password)}";
 
-            services.AddDbContextFactory<DatabaseContext>(optionsBuilder => optionsBuilder.UseNpgsql(connectionString));
+            services.AddDbContextFactory<IamDbContext>(optionsBuilder => optionsBuilder.UseNpgsql(connectionString));
 
             return services;
         }

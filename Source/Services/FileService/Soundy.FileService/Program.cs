@@ -16,7 +16,7 @@ builder.Services.ConfigureS3(builder.Configuration);
 
 builder.WebHost.ConfigureKestrel(options =>
 {
-    var hostPort = configuration.GetValue("CATALOG_SERVICE_PORT", 5007);
+    var hostPort = configuration.GetValue("FILE_SERVICE_PORT", 5007);
     options.ListenAnyIP(hostPort, listenOptions => listenOptions.Protocols = HttpProtocols.Http2);
 });
 

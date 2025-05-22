@@ -1,4 +1,4 @@
-﻿using Soundy.SharedLibrary.Contracts.User;
+﻿using Service.User;
 
 namespace Soundy.CatalogService.Configurations
 {
@@ -10,6 +10,7 @@ namespace Soundy.CatalogService.Configurations
             {
                 var address = new Uri(configuration["USER_SERVICE_URI"] ??
                                       throw new Exception("USER_SERVICE_URI is not specified in ENV"));
+
                 options.Address = address;
             });
 

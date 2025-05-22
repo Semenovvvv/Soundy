@@ -1,12 +1,12 @@
 ﻿using AutoMapper;
 using Grpc.Core;
 using Microsoft.EntityFrameworkCore;
+using Service.User;
 using Soundy.CatalogService.DataAccess;
 using Soundy.CatalogService.Dto;
 using Soundy.CatalogService.Dto.PlaylistDtos;
 using Soundy.CatalogService.Entities;
 using Soundy.CatalogService.Interfaces;
-using Soundy.SharedLibrary.Contracts.User;
 
 namespace Soundy.CatalogService.Services
 {
@@ -29,6 +29,8 @@ namespace Soundy.CatalogService.Services
             {
                 await using var dbContext = await _dbFactory.CreateDbContextAsync(ct);
 
+                
+
                 await _userService.GetByIdAsync(new GetByIdRequest() { Id = dto.AuthorId.ToString() }, cancellationToken: ct);
 
                 var playlist = new Playlist()
@@ -41,6 +43,13 @@ namespace Soundy.CatalogService.Services
 
                 await dbContext.Playlists.AddAsync(playlist, ct);
                 await dbContext.SaveChangesAsync(ct);
+
+                var request = new Service.User.GetByIdRequest { Id = dto.AuthorId.ToString() };
+                var response = await _userService.GetByIdAsync(request);
+                var author = _mapper.Map<User>(response.User);
+
+                playlist.Author = author;
+
                 return new CreateResponseDto()
                 {
                     Playlist = _mapper.Map<PlaylistDto>(playlist)
@@ -68,14 +77,24 @@ namespace Soundy.CatalogService.Services
                     Title = "Favorite",
                     CreatedAt = DateTime.UtcNow,
                     IsFavorite = true,
+                    AvatarUrl = ""
                 };
 
                 await dbContext.Playlists.AddAsync(playlist, ct);
                 await dbContext.SaveChangesAsync(ct);
-                return new CreateFavoriteResponseDto()
+
+                playlist.Author = new User()
                 {
-                    Playlist = _mapper.Map<PlaylistDto>(playlist)
+                    AvatarUrl = "",
+                    Bio = "",
+                    Email = "",
+                    Name = "",
+                    CreatedAt = DateTime.UtcNow
                 };
+
+                playlist.Tracks = new List<PlaylistTrack>();
+
+                return new CreateFavoriteResponseDto{ Playlist = _mapper.Map<PlaylistDto>(playlist) };
             }
             catch (RpcException prcEx)
             {
@@ -100,6 +119,12 @@ namespace Soundy.CatalogService.Services
             if (playlist is null)
                 throw new RpcException(new Status(StatusCode.NotFound, $"Playlist with Id = {dto.Id} not found"));
 
+            var request = new Service.User.GetByIdRequest { Id = playlist.AuthorId.ToString() };
+            var response = await _userService.GetByIdAsync(request);
+            var author = _mapper.Map<User>(response.User);
+
+            playlist.Author = author;
+
             return new GetByIdResponseDto()
             {
                 Playlist = _mapper.Map<PlaylistDto>(playlist)
@@ -115,6 +140,15 @@ namespace Soundy.CatalogService.Services
                 .Where(x => x.AuthorId == dto.AuthorId)
                 .IgnoreAutoIncludes()
                 .ToListAsync(ct);
+
+            var request = new Service.User.GetByIdRequest { Id = dto.AuthorId.ToString() };
+            var response = await _userService.GetByIdAsync(request);
+            var author = _mapper.Map<User>(response.User);
+
+            foreach (var playlist in playlists)
+            {
+                playlist.Author = author;
+            }
 
             return new GetListByAuthorIdResponseDto()
             {
@@ -132,10 +166,16 @@ namespace Soundy.CatalogService.Services
                 .ThenInclude(x => x.Track)
                 .FirstOrDefaultAsync(x => x.AuthorId == dto.AuthorId && x.IsFavorite, ct);
 
-            return new GetFavoriteResponseDto()
-            {
-                Playlist = _mapper.Map<PlaylistDto>(playlist)
-            };
+            if (playlist is null)
+                throw new RpcException(new Status(StatusCode.NotFound, $"Playlist with Author Id = {dto.AuthorId} not found"));
+
+            var request = new Service.User.GetByIdRequest { Id = dto.AuthorId.ToString() };
+            var response = await _userService.GetByIdAsync(request);
+            var author = _mapper.Map<User>(response.User);
+
+            playlist.Author = author;
+
+            return new GetFavoriteResponseDto { Playlist = _mapper.Map<PlaylistDto>(playlist) };
         }
 
         public async Task<AddTrackResponseDto> AddTrackAsync(AddTrackRequestDto dto, CancellationToken ct = default)
@@ -162,6 +202,12 @@ namespace Soundy.CatalogService.Services
 
             await dbContext.SaveChangesAsync(ct);
 
+            var request = new Service.User.GetByIdRequest { Id = playlist.AuthorId.ToString() };
+            var response = await _userService.GetByIdAsync(request);
+            var author = _mapper.Map<User>(response.User);
+
+            playlist.Author = author;
+
             return new AddTrackResponseDto() { Playlist = _mapper.Map<PlaylistDto>(playlist) };
         }
 
@@ -178,6 +224,12 @@ namespace Soundy.CatalogService.Services
 
             playlist.Title = dto.Name;
             await dbContext.SaveChangesAsync(ct);
+
+            var request = new Service.User.GetByIdRequest { Id = playlist.AuthorId.ToString() };
+            var response = await _userService.GetByIdAsync(request);
+            var author = _mapper.Map<User>(response.User);
+
+            playlist.Author = author;
 
             return new UpdateResponseDto()
             {

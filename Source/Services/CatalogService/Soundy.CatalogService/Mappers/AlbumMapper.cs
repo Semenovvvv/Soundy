@@ -24,6 +24,12 @@ namespace Soundy.CatalogService.Mappers
             CreateMap<AddTrackResponseDto, AddTrackResponse>()
                 .ForMember(dest => dest.Album, opt => opt.MapFrom(src => src.Album));
 
+            CreateMap<GetByIdRequest, GetByIdRequestDto>()
+                .ForMember(dest => dest.Id, opt => opt.MapFrom(src => Guid.Parse(src.Id)));
+
+            CreateMap<GetByIdResponseDto, GetByIdResponse>()
+                .ForMember(dest => dest.Album, opt => opt.MapFrom(src => src.Album));
+
             CreateMap<Album, AlbumDto>()
                 .ForMember(dest => dest.Id, opt => opt.MapFrom(src => Guid.Parse(src.Id)))
                 .ForMember(dest => dest.Title, opt => opt.MapFrom(src => src.Title))

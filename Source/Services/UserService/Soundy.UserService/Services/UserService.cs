@@ -1,4 +1,5 @@
-﻿using Grpc.Core;
+﻿using AutoMapper;
+using Grpc.Core;
 using Microsoft.EntityFrameworkCore;
 using Service.Playlist;
 using Soundy.UserService.DataAccess;
@@ -12,11 +13,13 @@ namespace Soundy.UserService.Services
     {
         private readonly IDbContextFactory<DatabaseContext> _dbFactory;
         private readonly PlaylistGrpcService.PlaylistGrpcServiceClient _playlistService;
+        private readonly IMapper _mapper;
 
-        public UserService(IDbContextFactory<DatabaseContext> dbFactory, PlaylistGrpcService.PlaylistGrpcServiceClient playlistService)
+        public UserService(IDbContextFactory<DatabaseContext> dbFactory, PlaylistGrpcService.PlaylistGrpcServiceClient playlistService, IMapper mapper)
         {
             _playlistService = playlistService;
             _dbFactory = dbFactory;
+            _mapper = mapper;
         }
 
         // TODO Вынести создание плейлиста в api gateway
@@ -26,8 +29,11 @@ namespace Soundy.UserService.Services
             {
                 var user = new User()
                 {
+                    Id = !string.IsNullOrEmpty(dto.Id) ? Guid.Parse(dto.Id) : Guid.NewGuid(),
                     Email = dto.Email,
-                    Name = dto.UserName,
+                    Name = dto.Name,
+                    Bio = dto.Bio,
+                    AvatarUrl = string.Empty,
                     CreatedAt = DateTime.UtcNow
                 };
 
@@ -41,12 +47,7 @@ namespace Soundy.UserService.Services
                 await _playlistService.CreateFavoriteAsync(new CreateFavoriteRequest() { AuthorId = user.Id.ToString() });
                 await dbContext.SaveChangesAsync(ct);
 
-                return new CreateResponseDto()
-                {
-                    Id = user.Id,
-                    UserName = user.Name,
-                    Email = user.Email
-                };
+                return new CreateResponseDto { User = _mapper.Map<UserDto>(user) };
             }
             catch (RpcException rpcEx)
             {
@@ -69,12 +70,7 @@ namespace Soundy.UserService.Services
             if (user is null)
                 throw new RpcException(new Status(StatusCode.NotFound, $"User not found. Id = {dto.Id}"));
 
-            return new GetByIdResponseDto()
-            {
-                Id = user.Id,
-                UserName = user.Name,
-                Email = user.Email
-            };
+            return new GetByIdResponseDto { User = _mapper.Map<UserDto>(user) };
         }
 
         public async Task<UpdateResponseDto> UpdateUser(UpdateRequestDto dto, CancellationToken ct = default)
@@ -93,12 +89,7 @@ namespace Soundy.UserService.Services
 
             await dbContext.SaveChangesAsync(ct);
 
-            return new UpdateResponseDto()
-            {
-                Id = user.Id,
-                Email = user.Email,
-                UserName = user.Name
-            };
+            return new UpdateResponseDto { User = _mapper.Map<UserDto>(user) };
         }
 
         public async Task<DeleteResponseDto> DeleteUser(DeleteRequestDto dto, CancellationToken ct = default)
@@ -137,15 +128,10 @@ namespace Soundy.UserService.Services
                 .OrderBy(u => u.Name)
                 .Skip((dto.PageNumber - 1) * dto.PageSize)
                 .Take(dto.PageSize)
-                .Select(x => new UserDto()
-                {
-                    Id = x.Id,
-                    Email = x.Email,
-                    UserName = x.Name
-                })
+                .Select(x => _mapper.Map<UserDto>(x))
                 .ToListAsync(ct);
 
-            return new SearchResponseDto()
+            return new SearchResponseDto
             {
                 Users = users,
                 PageNumber = dto.PageNumber,

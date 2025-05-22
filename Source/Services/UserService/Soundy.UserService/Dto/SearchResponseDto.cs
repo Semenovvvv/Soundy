@@ -2,8 +2,8 @@
 {
     public class SearchResponseDto
     {
-        public IEnumerable<UserDto> Users { get; set; }
         public int PageSize { get; set; }
         public int PageNumber { get; set; }
+        public IEnumerable<UserDto> Users { get; set; }
     }
 }

@@ -17,6 +17,7 @@ namespace Soundy.CatalogService.Mappers
                 .ForMember(dest => dest.AlbumId, opt => opt.MapFrom(src => Guid.Parse(src.AlbumId)))
                 .ForMember(dest => dest.Duration, opt => opt.MapFrom(src => src.Duration))
                 .ForMember(dest => dest.AvatarUrl, opt => opt.MapFrom(src => src.AvatarUrl));
+
             CreateMap<CreateResponseDto, CreateResponse>()
                 .ForMember(d => d.Track, o => o.MapFrom(s => s.Track));
 
@@ -61,7 +62,7 @@ namespace Soundy.CatalogService.Mappers
             CreateMap<Track, TrackDto>()
                 .ForMember(dest => dest.Id, opt => opt.MapFrom(src => Guid.Parse(src.Id)))
                 .ForMember(dest => dest.Title, opt => opt.MapFrom(src => src.Title))
-                .ForMember(dest => dest.AuthorId, opt => opt.MapFrom(src => Guid.Parse(src.AuthorId)))
+                .ForMember(dest => dest.AuthorId, opt => opt.MapFrom(src => Guid.Parse(src.User.Id)))
                 .ForMember(dest => dest.AlbumId, opt => opt.MapFrom(src => Guid.Parse(src.AlbumId)))
                 .ForMember(dest => dest.Duration, opt => opt.MapFrom(src => src.Duration))
                 .ForMember(dest => dest.CreatedAt, opt => opt.MapFrom(src => src.CreatedAt.ToDateTime()))
@@ -70,7 +71,7 @@ namespace Soundy.CatalogService.Mappers
             CreateMap<TrackDto, Track>()
                 .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.Id.ToString()))
                 .ForMember(dest => dest.Title, opt => opt.MapFrom(src => src.Title))
-                .ForMember(dest => dest.AuthorId, opt => opt.MapFrom(src => src.AuthorId.ToString()))
+                .ForMember(dest => dest.User, opt => opt.MapFrom(src => src.Author))
                 .ForMember(dest => dest.AlbumId, opt => opt.MapFrom(src => src.AlbumId.ToString()))
                 .ForMember(dest => dest.CreatedAt, opt => opt.MapFrom(src => Timestamp.FromDateTime(src.CreatedAt.ToUniversalTime())))
                 .ForMember(dest => dest.Duration, opt => opt.MapFrom(src => src.Duration))

@@ -1,8 +1,0 @@
-﻿syntax = "proto3";
-
-import "first.proto";
-
-message Second {
-	string id = 1;
-	First first = 2;
-}

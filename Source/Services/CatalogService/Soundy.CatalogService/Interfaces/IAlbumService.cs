@@ -27,5 +27,13 @@ namespace Soundy.CatalogService.Interfaces
         /// <param name="ct">Токен отмены</param>
         /// <returns>Детальная информация об альбоме с данными автора</returns>
         Task<GetByIdResponseDto> GetByIdAsync(GetByIdRequestDto dto, CancellationToken ct = default);
+
+        /// <summary>
+        /// Получает список альбомов по идентификатору автора
+        /// </summary>
+        /// <param name="dto">Идентификатор автора</param>
+        /// <param name="ct">Токен отмены</param>
+        /// <returns>Список альбомов автора</returns>
+        Task<GetByAuthorIdResponseDto> GetByAuthorIdAsync(GetByAuthorIdRequestDto dto, CancellationToken ct = default);
     }
 }

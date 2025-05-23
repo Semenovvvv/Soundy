@@ -69,7 +69,7 @@ namespace Soundy.FileService.Services
             try
             {
                 // Создаем временную папку
-                Directory.CreateDirectory(tempDir);
+                var directory = Directory.CreateDirectory(tempDir);
 
                 // Читаем первый чанк, чтобы получить метаданные
                 if (await requestStream.MoveNext(ct))
@@ -93,8 +93,12 @@ namespace Soundy.FileService.Services
                 // Конвертируем в HLS
                 await ConvertToHls(inputPath, tempDir, ct);
 
+                directory.GetFiles(firstRequest.FileName).First().Delete();
+
                 // Загружаем в MinIO
                 await UploadHlsFilesToMinIO(trackId, tempDir, ct);
+
+                
 
                 // Формируем URL
                 var playlistUrl = $"http://localhost:9001/{trackId}/index.m3u8";

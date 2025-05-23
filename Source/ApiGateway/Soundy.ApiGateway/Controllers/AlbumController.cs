@@ -33,5 +33,24 @@ namespace Soundy.ApiGateway.Controllers
             var response = await _albumService.AddTrackAsync(request, cancellationToken: ct);
             return Ok(response);
         }
+
+        /// <summary>
+        /// Получает все альбомы пользователя по ID автора.
+        /// </summary>
+        [HttpGet("author/{authorId}")]
+        public async Task<IActionResult> GetByAuthorIdAsync([FromRoute] string authorId, CancellationToken ct = default)
+        {
+            var request = new GetByAuthorIdRequest { AuthorId = authorId };
+            var response = await _albumService.GetByAuthorIdAsync(request, cancellationToken: ct);
+            return Ok(response);
+        }
+
+        [HttpGet("{id}")]
+        public async Task<IActionResult> GetByIdAsync([FromRoute] string id, CancellationToken ct = default)
+        {
+            var request = new GetByIdRequest { Id = id };
+            var response = await _albumService.GetByIdAsync(request, cancellationToken: ct);
+            return Ok(response);
+        }
     }
 }

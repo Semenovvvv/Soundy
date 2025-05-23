@@ -147,5 +147,44 @@ namespace Soundy.CatalogService.Services
                 Album = _mapper.Map<AlbumDto>(album)
             };
         }
+
+        /// <summary>
+        /// Получает список альбомов по идентификатору автора
+        /// </summary>
+        /// <param name="dto">Идентификатор автора</param>
+        /// <param name="ct">Токен отмены</param>
+        /// <returns>Список альбомов автора</returns>
+        public async Task<GetByAuthorIdResponseDto> GetByAuthorIdAsync(GetByAuthorIdRequestDto dto, CancellationToken ct = default)
+        {
+            await using var dbContext = await _dbFactory.CreateDbContextAsync(ct);
+
+            var albums = await dbContext.Albums
+                .Include(a => a.Tracks)
+                .Where(a => a.AuthorId == dto.AuthorId)
+                .ToListAsync(ct);
+
+            try
+            {
+                var userResponse = await _userService.GetByIdAsync(new GetByIdRequest { Id = dto.AuthorId.ToString() }, cancellationToken: ct);
+                if (userResponse?.User != null)
+                {
+                    var author = _mapper.Map<User>(userResponse.User);
+                    foreach (var album in albums)
+                    {
+                        album.Author = author;
+                    }
+                    _logger.LogInformation("Successfully loaded author information for albums by author {AuthorId}", dto.AuthorId);
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Failed to load author information for albums by author {AuthorId}", dto.AuthorId);
+            }
+
+            return new GetByAuthorIdResponseDto
+            {
+                Albums = albums.Select(a => _mapper.Map<AlbumDto>(a))
+            };
+        }
     }
 }

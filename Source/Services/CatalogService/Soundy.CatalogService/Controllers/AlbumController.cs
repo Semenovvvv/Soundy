@@ -49,5 +49,18 @@ namespace Soundy.CatalogService.Controllers
             var responseDto = await _albumService.GetByIdAsync(requestDto, context.CancellationToken);
             return _mapper.Map<GetByIdResponse>(responseDto);
         }
+
+        /// <summary>
+        /// Получает список альбомов по идентификатору автора
+        /// </summary>
+        /// <param name="request">Запрос с идентификатором автора</param>
+        /// <param name="context">Контекст gRPC запроса</param>
+        /// <returns>Ответ со списком альбомов автора</returns>
+        public override async Task<GetByAuthorIdResponse> GetByAuthorId(GetByAuthorIdRequest request, ServerCallContext context)
+        {
+            var requestDto = _mapper.Map<GetByAuthorIdRequestDto>(request);
+            var responseDto = await _albumService.GetByAuthorIdAsync(requestDto, context.CancellationToken);
+            return _mapper.Map<GetByAuthorIdResponse>(responseDto);
+        }
     }
 }

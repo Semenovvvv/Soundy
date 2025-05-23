@@ -9,6 +9,7 @@ service AlbumGrpcService {
   rpc Create(CreateRequest) returns (CreateResponse);
   rpc AddTrack(AddTrackRequest) returns (AddTrackResponse);
   rpc GetById(GetByIdRequest) returns (GetByIdResponse);
+  rpc GetByAuthorId(GetByAuthorIdRequest) returns (GetByAuthorIdResponse);
 }
 
 
@@ -34,4 +35,11 @@ message GetByIdRequest{
 }
 message GetByIdResponse{
 	types.Album album = 1;
+}
+
+message GetByAuthorIdRequest{
+	string author_id = 1;
+}
+message GetByAuthorIdResponse{
+	repeated types.Album albums = 1;
 }

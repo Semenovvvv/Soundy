@@ -40,16 +40,6 @@ public class TrackController : ControllerBase
     }
 
     /// <summary>
-    /// Получает список треков по ID плейлиста.
-    /// </summary>
-    //[HttpGet("playlist/{playlistId}")]
-    //public async Task<IActionResult> GetListByPlaylistAsync([FromRoute] GetListByPlaylistRequest dto, CancellationToken ct = default)
-    //{
-    //    var response = await _trackService.GetListByPlaylistAsync(dto, cancellationToken: ct);
-    //    return Ok(response);
-    //}
-
-    /// <summary>
     /// Выполняет поиск треков.
     /// </summary>
     [HttpGet("search")]
@@ -77,6 +67,17 @@ public class TrackController : ControllerBase
     {
         var request = new DeleteRequest { Id = id };
         var response = await _trackService.DeleteAsync(request, cancellationToken: ct);
+        return Ok(response);
+    }
+
+    /// <summary>
+    /// Получает список треков по ID автора.
+    /// </summary>
+    [HttpGet("author/{authorId}")]
+    public async Task<IActionResult> GetByAuthorIdAsync([FromRoute] string authorId, CancellationToken ct = default)
+    {
+        var request = new GetListByUserIdRequest { UserId = authorId };
+        var response = await _trackService.GetListByUserIdAsync(request, cancellationToken: ct);
         return Ok(response);
     }
 }

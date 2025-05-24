@@ -15,6 +15,7 @@
 	<ItemGroup>
 		<Protobuf Include="$(ProtoPath)\user.proto" GrpcServices="Server" />
 		<Protobuf Include="$(ProtoPath)\playlist.proto" GrpcServices="Client" />
+		<Protobuf Include="$(ProtoPath)\iam.proto" GrpcServices="Client" />
 
 		<Protobuf Include="$(ProtoPath)\Types\type_playlist.proto" GrpcServices="None" ProtoRoot="$(ProtoPath)" />
 		<Protobuf Include="$(ProtoPath)\Types\type_track.proto" GrpcServices="None" ProtoRoot="$(ProtoPath)" />

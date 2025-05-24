@@ -20,7 +20,10 @@ try
     builder.Services.AddScoped<IUserService, UserService>();
     builder.Services.AddAutoMapper(typeof(UserServiceMapper));
     builder.Services.ConfigureContext(configuration);
-    builder.Services.AddPlaylistServiceClient(configuration);
+    
+    // Явно указываем, какой метод расширения использовать
+    Soundy.UserService.Configurations.PlaylistServiceClientConfiguration.AddPlaylistServiceClient(builder.Services, configuration);
+    Soundy.UserService.Extensions.GrpcClientExtensions.AddIAMServiceClient(builder.Services, configuration);
 
     builder.WebHost.ConfigureKestrel(options =>
     {

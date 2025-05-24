@@ -2,14 +2,22 @@
 using Grpc.Core;
 using Service.Album;
 using Soundy.CatalogService.Dto.AlbumDtos;
+using Soundy.CatalogService.Entities;
 using Soundy.CatalogService.Interfaces;
+using System.Collections.Generic;
 
 namespace Soundy.CatalogService.Controllers
 {
-    public class AlbumGrpcController(IAlbumService albumService, IMapper mapper) : AlbumGrpcService.AlbumGrpcServiceBase
+    public class AlbumGrpcController : AlbumGrpcService.AlbumGrpcServiceBase
     {
-        private IAlbumService _albumService = albumService;
-        private IMapper _mapper = mapper;
+        private readonly IAlbumService _albumService;
+        private readonly IMapper _mapper;
+
+        public AlbumGrpcController(IAlbumService albumService, IMapper mapper)
+        {
+            _albumService = albumService;
+            _mapper = mapper;
+        }
 
         /// <summary>
         /// Создает новый альбом
@@ -61,6 +69,32 @@ namespace Soundy.CatalogService.Controllers
             var requestDto = _mapper.Map<GetByAuthorIdRequestDto>(request);
             var responseDto = await _albumService.GetByAuthorIdAsync(requestDto, context.CancellationToken);
             return _mapper.Map<GetByAuthorIdResponse>(responseDto);
+        }
+
+        /// <summary>
+        /// Выполняет поиск альбомов по названию
+        /// </summary>
+        /// <param name="request">Параметры поиска</param>
+        /// <param name="context">Контекст gRPC запроса</param>
+        /// <returns>Результаты поиска альбомов</returns>
+        public override async Task<SearchResponse> Search(SearchRequest request, ServerCallContext context)
+        {
+            var requestDto = _mapper.Map<SearchRequestDto>(request);
+            var responseDto = await _albumService.SearchAsync(requestDto, context.CancellationToken);
+            return _mapper.Map<SearchResponse>(responseDto);
+        }
+
+        /// <summary>
+        /// Получает список последних созданных альбомов
+        /// </summary>
+        /// <param name="request">Запрос с количеством записей</param>
+        /// <param name="context">Контекст gRPC запроса</param>
+        /// <returns>Список последних созданных альбомов</returns>
+        public override async Task<GetLatestAlbumsResponse> GetLatestAlbums(GetLatestAlbumsRequest request, ServerCallContext context)
+        {
+            var requestDto = _mapper.Map<GetLatestAlbumsRequestDto>(request);
+            var responseDto = await _albumService.GetLatestAlbumsAsync(requestDto, context.CancellationToken);
+            return _mapper.Map<GetLatestAlbumsResponse>(responseDto);
         }
     }
 }

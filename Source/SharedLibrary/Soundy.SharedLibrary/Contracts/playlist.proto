@@ -4,6 +4,7 @@ package service.playlist;
 
 import "Types/type_track.proto";
 import "Types/type_playlist.proto";
+import "google/protobuf/timestamp.proto";
 
 service PlaylistGrpcService {
 	rpc Create				(CreateRequest)				returns (CreateResponse);
@@ -14,6 +15,8 @@ service PlaylistGrpcService {
 	rpc AddTrack			(AddTrackRequest)			returns (AddTrackResponse);
 	rpc Update				(UpdateRequest)				returns (UpdateResponse);
 	rpc Delete				(DeleteRequest)				returns (DeleteResponse);
+	rpc Search				(SearchRequest)				returns (SearchResponse);
+	rpc GetLatestPlaylists	(GetLatestPlaylistsRequest)	returns (GetLatestPlaylistsResponse);
 }
 
 
@@ -74,4 +77,23 @@ message DeleteRequest{
 }
 message DeleteResponse {
 	bool is_success = 1;
+}
+
+message SearchRequest {
+	string pattern = 1;
+	int32 page_size = 2;
+	int32 page_num = 3;
+}
+message SearchResponse {
+	string pattern = 1;
+	int32 page_size = 2;
+	int32 page_num = 3;
+	repeated types.Playlist playlists = 4;
+}
+
+message GetLatestPlaylistsRequest {
+	int32 count = 1;
+}
+message GetLatestPlaylistsResponse {
+	repeated types.Playlist playlists = 1;
 }

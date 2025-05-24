@@ -186,5 +186,110 @@ namespace Soundy.CatalogService.Services
                 Albums = albums.Select(a => _mapper.Map<AlbumDto>(a))
             };
         }
+
+        /// <summary>
+        /// Выполняет поиск альбомов по названию с пагинацией
+        /// </summary>
+        /// <param name="dto">Параметры поиска</param>
+        /// <param name="ct">Токен отмены</param>
+        /// <returns>Результаты поиска альбомов</returns>
+        public async Task<SearchResponseDto> SearchAsync(SearchRequestDto dto, CancellationToken ct = default)
+        {
+            await using var dbContext = await _dbFactory.CreateDbContextAsync(ct);
+
+            var albumsQuery = dbContext.Albums
+                .Include(a => a.Tracks)
+                .Where(a => EF.Functions.Like(a.Title, $"%{dto.Pattern}%"))
+                .Skip((dto.PageNum - 1) * dto.PageSize)
+                .Take(dto.PageSize);
+            
+            var albums = await albumsQuery.ToListAsync(ct);
+            
+            // Load author information for each album
+            foreach (var album in albums)
+            {
+                try
+                {
+                    var userResponse = await _userService.GetByIdAsync(new GetByIdRequest { Id = album.AuthorId.ToString() }, cancellationToken: ct);
+                    if (userResponse?.User != null)
+                    {
+                        album.Author = _mapper.Map<User>(userResponse.User);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning(ex, "Failed to load author information for album {AlbumId}", album.Id);
+                }
+            }
+
+            var albumDtos = albums.Select(x => _mapper.Map<AlbumDto>(x)).ToList();
+
+            return new SearchResponseDto()
+            {
+                Pattern = dto.Pattern,
+                PageNum = dto.PageNum,
+                PageSize = dto.PageSize,
+                Albums = albumDtos
+            };
+        }
+
+        /// <summary>
+        /// Получает список последних созданных альбомов
+        /// </summary>
+        /// <param name="dto">Параметры запроса с количеством записей</param>
+        /// <param name="ct">Токен отмены</param>
+        /// <returns>Список последних созданных альбомов</returns>
+        public async Task<GetLatestAlbumsResponseDto> GetLatestAlbumsAsync(GetLatestAlbumsRequestDto dto, CancellationToken ct = default)
+        {
+            int count = dto.Count > 0 ? dto.Count : 10; // По умолчанию 10, если передано некорректное значение
+            
+            await using var dbContext = await _dbFactory.CreateDbContextAsync(ct);
+            
+            var latestAlbums = await dbContext.Albums
+                .AsNoTracking()
+                //.Include(a => a.Tracks)
+                .OrderByDescending(a => a.CreatedAt)
+                .Take(count)
+                .ToListAsync(ct);
+
+            // Загрузим информацию об авторах для каждого альбома
+            var authorIds = latestAlbums.Select(a => a.AuthorId).Distinct().ToList();
+            var authors = new Dictionary<Guid, User>();
+            
+            foreach (var authorId in authorIds)
+            {
+                try
+                {
+                    var userResponse = await _userService.GetByIdAsync(
+                        new GetByIdRequest { Id = authorId.ToString() }, 
+                        cancellationToken: ct);
+                        
+                    if (userResponse?.User != null)
+                    {
+                        authors[authorId] = _mapper.Map<User>(userResponse.User);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning(ex, "Failed to load author information for album author {AuthorId}", authorId);
+                }
+            }
+            
+            // Присвоим авторов альбомам
+            foreach (var album in latestAlbums)
+            {
+                if (authors.TryGetValue(album.AuthorId, out var author))
+                {
+                    album.Author = author;
+                }
+            }
+
+            var albumDtos = latestAlbums.Select(album => _mapper.Map<AlbumDto>(album)).ToList();
+
+            return new GetLatestAlbumsResponseDto
+            {
+                Albums = albumDtos
+            };
+        }
     }
 }

@@ -51,5 +51,18 @@ namespace Soundy.UserService.Controllers
             var response = await _userService.SearchUsers(dto);
             return _mapper.Map<SearchResponse>(response);
         }
+
+        /// <summary>
+        /// Получает список последних зарегистрированных пользователей
+        /// </summary>
+        /// <param name="request">Запрос с количеством записей</param>
+        /// <param name="context">Контекст gRPC запроса</param>
+        /// <returns>Список последних зарегистрированных пользователей</returns>
+        public override async Task<GetLatestUsersResponse> GetLatestUsers(GetLatestUsersRequest request, ServerCallContext context)
+        {
+            var dto = _mapper.Map<GetLatestUsersRequestDto>(request);
+            var response = await _userService.GetLatestUsersAsync(dto, context.CancellationToken);
+            return _mapper.Map<GetLatestUsersResponse>(response);
+        }
     }
 }

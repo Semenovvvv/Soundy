@@ -10,6 +10,8 @@ service AlbumGrpcService {
   rpc AddTrack(AddTrackRequest) returns (AddTrackResponse);
   rpc GetById(GetByIdRequest) returns (GetByIdResponse);
   rpc GetByAuthorId(GetByAuthorIdRequest) returns (GetByAuthorIdResponse);
+  rpc Search(SearchRequest) returns (SearchResponse);
+  rpc GetLatestAlbums(GetLatestAlbumsRequest) returns (GetLatestAlbumsResponse);
 }
 
 
@@ -42,4 +44,23 @@ message GetByAuthorIdRequest{
 }
 message GetByAuthorIdResponse{
 	repeated types.Album albums = 1;
+}
+
+message SearchRequest {
+    string pattern = 1;
+    int32 page_size = 2;
+    int32 page_num = 3;
+}
+message SearchResponse {
+    string pattern = 1;
+    int32 page_size = 2;
+    int32 page_num = 3;
+    repeated types.Album albums = 4;
+}
+
+message GetLatestAlbumsRequest {
+    int32 count = 1;
+}
+message GetLatestAlbumsResponse {
+    repeated types.Album albums = 1;
 }

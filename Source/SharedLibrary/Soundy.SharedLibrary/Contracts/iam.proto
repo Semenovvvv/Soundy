@@ -7,6 +7,9 @@ service IAMGrpcService {
   rpc SignUp(SignUpRequest)					returns (SignUpResponse);
   rpc SignOut(SignOutRequest)				returns (SignOutResponse);
   rpc ValidateToken(ValidateTokenRequest)	returns (ValidateTokenResponse);
+  rpc RefreshToken(RefreshTokenRequest)		returns (RefreshTokenResponse);
+  rpc UpdateUserData(UpdateUserDataRequest)  returns (UpdateUserDataResponse);
+  rpc DeleteUser(DeleteUserRequest)          returns (DeleteUserResponse);
 }
 
 message SignInRequest {
@@ -41,4 +44,35 @@ message SignOutRequest {
 }
 message SignOutResponse {
   bool success = 1;
+}
+
+message RefreshTokenRequest {
+  string refresh_token = 1;
+}
+message RefreshTokenResponse {
+  bool success = 1;
+  string error_message = 2;
+  string access_token = 3;
+  string refresh_token = 4;
+  string user_id = 5;
+}
+
+message UpdateUserDataRequest {
+  string user_id = 1;
+  string username = 2;
+  optional string email = 3;
+}
+
+message UpdateUserDataResponse {
+  bool success = 1;
+  string error_message = 2;
+}
+
+message DeleteUserRequest {
+  string user_id = 1;
+}
+
+message DeleteUserResponse {
+  bool success = 1;
+  string error_message = 2;
 }

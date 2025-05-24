@@ -10,4 +10,6 @@ public interface IAuthService
     Task<bool> SignOutAsync(string refreshToken);
     Task<TokenValidationResult> ValidateTokenAsync(string token);
     Task<AuthResult> RefreshTokenAsync(string refreshToken);
+    Task<(bool Success, string? ErrorMessage)> UpdateUserDataAsync(string userId, string username, string? email = null);
+    Task<(bool Success, string? ErrorMessage)> DeleteUserAsync(string userId);
 } 

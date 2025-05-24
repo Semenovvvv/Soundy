@@ -52,20 +52,69 @@ namespace Soundy.IAM.Controllers
             };
         }
 
-        public async Task<SignInResponse> RefreshToken(string refreshToken)
+        public override async Task<RefreshTokenResponse> RefreshToken(RefreshTokenRequest request, ServerCallContext context)
         {
-            var result = await _authService.RefreshTokenAsync(refreshToken);
+            var result = await _authService.RefreshTokenAsync(request.RefreshToken);
             
-            if (!result.Success)
+            return new RefreshTokenResponse
             {
-                throw new RpcException(new Status(StatusCode.Unauthenticated, result.ErrorMessage));
+                Success = result.Success,
+                ErrorMessage = result.ErrorMessage ?? string.Empty,
+                AccessToken = result.AccessToken ?? string.Empty,
+                RefreshToken = result.RefreshToken ?? string.Empty,
+                UserId = result.UserId ?? string.Empty
+            };
+        }
+
+        public override async Task<UpdateUserDataResponse> UpdateUserData(UpdateUserDataRequest request, ServerCallContext context)
+        {
+            if (string.IsNullOrEmpty(request.UserId))
+            {
+                return new UpdateUserDataResponse
+                {
+                    Success = false,
+                    ErrorMessage = "User ID is required"
+                };
             }
 
-            return new SignInResponse
+            if (string.IsNullOrEmpty(request.Username))
             {
-                AccessToken = result.AccessToken,
-                RefreshToken = result.RefreshToken,
-                UserId = result.UserId
+                return new UpdateUserDataResponse
+                {
+                    Success = false,
+                    ErrorMessage = "Username is required"
+                };
+            }
+
+            var result = await _authService.UpdateUserDataAsync(
+                request.UserId,
+                request.Username,
+                request.HasEmail ? request.Email : null);
+
+            return new UpdateUserDataResponse
+            {
+                Success = result.Success,
+                ErrorMessage = result.ErrorMessage ?? string.Empty
+            };
+        }
+
+        public override async Task<DeleteUserResponse> DeleteUser(DeleteUserRequest request, ServerCallContext context)
+        {
+            if (string.IsNullOrEmpty(request.UserId))
+            {
+                return new DeleteUserResponse
+                {
+                    Success = false,
+                    ErrorMessage = "User ID is required"
+                };
+            }
+
+            var result = await _authService.DeleteUserAsync(request.UserId);
+
+            return new DeleteUserResponse
+            {
+                Success = result.Success,
+                ErrorMessage = result.ErrorMessage ?? string.Empty
             };
         }
     }

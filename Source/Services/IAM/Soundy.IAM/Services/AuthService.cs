@@ -206,6 +206,87 @@ public class AuthService : IAuthService
         };
     }
 
+    public async Task<(bool Success, string? ErrorMessage)> UpdateUserDataAsync(string userId, string username, string? email = null)
+    {
+        try
+        {
+            var user = await _dbContext.Users.FirstOrDefaultAsync(u => u.Id.ToString() == userId);
+            
+            if (user == null)
+            {
+                return (false, "User not found");
+            }
+
+            // Обновляем имя пользователя
+            user.Username = username;
+            
+            // Больше не обновляем email, даже если он был передан
+            // if (email != null)
+            // {
+            //     // Проверяем, не занят ли email другим пользователем
+            //     var emailExists = await _dbContext.Users
+            //         .AnyAsync(u => u.Email == email && u.Id != user.Id);
+            //         
+            //     if (emailExists)
+            //     {
+            //         return (false, "Email is already in use by another user");
+            //     }
+            //     
+            //     user.Email = email;
+            // }
+            
+            await _dbContext.SaveChangesAsync();
+            return (true, null);
+        }
+        catch (Exception ex)
+        {
+            return (false, $"Error updating user data: {ex.Message}");
+        }
+    }
+
+    public async Task<(bool Success, string? ErrorMessage)> DeleteUserAsync(string userId)
+    {
+        try
+        {
+            // Проверяем существование пользователя
+            var user = await _dbContext.Users.FirstOrDefaultAsync(u => u.Id.ToString() == userId);
+            if (user == null)
+            {
+                return (false, "User not found");
+            }
+
+            // Удаляем связанные refresh токены
+            var refreshTokens = await _dbContext.RefreshTokens
+                .Where(t => t.UserId.ToString() == userId)
+                .ToListAsync();
+            
+            if (refreshTokens.Any())
+            {
+                _dbContext.RefreshTokens.RemoveRange(refreshTokens);
+            }
+
+            // Удаляем связи с ролями
+            var userRoles = await _dbContext.UserRoles
+                .Where(ur => ur.UserId.ToString() == userId)
+                .ToListAsync();
+            
+            if (userRoles.Any())
+            {
+                _dbContext.UserRoles.RemoveRange(userRoles);
+            }
+
+            // Удаляем пользователя
+            _dbContext.Users.Remove(user);
+            await _dbContext.SaveChangesAsync();
+
+            return (true, null);
+        }
+        catch (Exception ex)
+        {
+            return (false, $"Error deleting user: {ex.Message}");
+        }
+    }
+
     #region Helper Methods
 
     private string GenerateAccessToken(User user)

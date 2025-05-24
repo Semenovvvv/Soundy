@@ -35,6 +35,12 @@ namespace Soundy.CatalogService.Mappers
                 .ForMember(d => d.Playlist, o => o.MapFrom(s => s.Playlist));
 
 
+            CreateMap<GetLatestPlaylistsRequest, GetLatestPlaylistsRequestDto>()
+                .ForMember(dest => dest.Count, opt => opt.MapFrom(src => src.Count));
+
+            CreateMap<GetLatestPlaylistsResponseDto, GetLatestPlaylistsResponse>()
+                .ForMember(dest => dest.Playlists, opt => opt.MapFrom(src => src.Playlists));
+
 
             CreateMap<GetListByAuthorIdRequest, GetListByAuthorIdRequestDto>()
                 .ForMember(d => d.AuthorId, o => o.MapFrom(s => Guid.Parse(s.AuthorId)));
@@ -75,6 +81,19 @@ namespace Soundy.CatalogService.Mappers
 
             CreateMap<DeleteResponseDto, DeleteResponse>()
                 .ForMember(d => d.IsSuccess, o => o.MapFrom(s => s.IsSuccess));
+
+
+
+            CreateMap<SearchRequest, SearchRequestDto>()
+                .ForMember(d => d.Pattern, o => o.MapFrom(s => s.Pattern))
+                .ForMember(d => d.PageSize, o => o.MapFrom(s => s.PageSize))
+                .ForMember(d => d.PageNum, o => o.MapFrom(s => s.PageNum));
+
+            CreateMap<SearchResponseDto, SearchResponse>()
+                .ForMember(d => d.Pattern, o => o.MapFrom(s => s.Pattern))
+                .ForMember(d => d.PageSize, o => o.MapFrom(s => s.PageSize))
+                .ForMember(d => d.PageNum, o => o.MapFrom(s => s.PageNum))
+                .ForMember(d => d.Playlists, o => o.MapFrom(s => s.Playlists));
 
 
 

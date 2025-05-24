@@ -1,6 +1,8 @@
 ﻿using AutoMapper;
 using Grpc.Core;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
+using Service.Iam;
 using Service.Playlist;
 using Soundy.UserService.DataAccess;
 using Soundy.UserService.Dto;
@@ -13,13 +15,22 @@ namespace Soundy.UserService.Services
     {
         private readonly IDbContextFactory<DatabaseContext> _dbFactory;
         private readonly PlaylistGrpcService.PlaylistGrpcServiceClient _playlistService;
+        private readonly IAMGrpcService.IAMGrpcServiceClient _iamService;
         private readonly IMapper _mapper;
+        private readonly ILogger<UserService> _logger;
 
-        public UserService(IDbContextFactory<DatabaseContext> dbFactory, PlaylistGrpcService.PlaylistGrpcServiceClient playlistService, IMapper mapper)
+        public UserService(
+            IDbContextFactory<DatabaseContext> dbFactory, 
+            PlaylistGrpcService.PlaylistGrpcServiceClient playlistService, 
+            IAMGrpcService.IAMGrpcServiceClient iamService,
+            IMapper mapper,
+            ILogger<UserService> logger)
         {
             _playlistService = playlistService;
+            _iamService = iamService;
             _dbFactory = dbFactory;
             _mapper = mapper;
+            _logger = logger;
         }
 
         // TODO Вынести создание плейлиста в api gateway
@@ -47,14 +58,20 @@ namespace Soundy.UserService.Services
                 await _playlistService.CreateFavoriteAsync(new CreateFavoriteRequest() { AuthorId = user.Id.ToString() });
                 await dbContext.SaveChangesAsync(ct);
 
+                // Примечание: мы не обновляем данные в IAM при создании пользователя,
+                // так как предполагается, что регистрация происходит через IAM сервис
+                // и данные о пользователе уже есть в IAM.
+
                 return new CreateResponseDto { User = _mapper.Map<UserDto>(user) };
             }
             catch (RpcException rpcEx)
             {
+                _logger.LogError(rpcEx, "RPC error creating user: {Message}", rpcEx.Status.Detail);
                 throw;
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex, "Error creating user");
                 throw new RpcException(new Status(StatusCode.Internal, ex.Message));
             }
         }
@@ -75,39 +92,125 @@ namespace Soundy.UserService.Services
 
         public async Task<UpdateResponseDto> UpdateUser(UpdateRequestDto dto, CancellationToken ct = default)
         {
-            await using var dbContext = await _dbFactory.CreateDbContextAsync(ct);
+            try
+            {
+                await using var dbContext = await _dbFactory.CreateDbContextAsync(ct);
 
-            var user = await dbContext.Users.FirstOrDefaultAsync(x => x.Id == dto.Id, cancellationToken: ct);
-            if (user is null)
-                throw new RpcException(new Status(StatusCode.NotFound, $"User not found. Id = {dto.Id}"));
+                var user = await dbContext.Users.FirstOrDefaultAsync(x => x.Id == dto.Id, cancellationToken: ct);
+                if (user is null)
+                    throw new RpcException(new Status(StatusCode.NotFound, $"User not found. Id = {dto.Id}"));
 
-            if (string.IsNullOrEmpty(dto.Email) || string.IsNullOrEmpty(dto.UserName))
-                throw new RpcException(new Status(StatusCode.InvalidArgument, $"Arguments null"));
+                if (string.IsNullOrEmpty(dto.UserName))
+                    throw new RpcException(new Status(StatusCode.InvalidArgument, "Username is required"));
 
-            user.Name = dto.UserName;
-            user.Email = dto.Email;
+                // Обновляем только разрешенные поля: Name, Bio, AvatarUrl
+                user.Name = dto.UserName;
+                
+                // Обновляем Bio, если оно указано
+                if (dto.Bio != null)
+                {
+                    user.Bio = dto.Bio;
+                }
+                
+                // Обновляем AvatarUrl, если оно указано
+                if (dto.AvatarUrl != null)
+                {
+                    user.AvatarUrl = dto.AvatarUrl;
+                }
 
-            await dbContext.SaveChangesAsync(ct);
+                await dbContext.SaveChangesAsync(ct);
 
-            return new UpdateResponseDto { User = _mapper.Map<UserDto>(user) };
+                // Обновляем данные в IAM сервисе
+                try
+                {
+                    var iamUpdateRequest = new UpdateUserDataRequest
+                    {
+                        UserId = user.Id.ToString(),
+                        Username = user.Name
+                    };
+
+                    // Не передаем email в IAM сервис для обновления
+                    // if (dto.Email != null)
+                    // {
+                    //     iamUpdateRequest.Email = user.Email;
+                    // }
+
+                    _logger.LogInformation("Updating user data in IAM for user ID: {UserId}", user.Id);
+                    var iamResponse = await _iamService.UpdateUserDataAsync(iamUpdateRequest, cancellationToken: ct);
+                    
+                    if (!iamResponse.Success)
+                    {
+                        _logger.LogWarning("Failed to update user data in IAM: {ErrorMessage}", iamResponse.ErrorMessage);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    // Логируем ошибку, но не фейлим операцию обновления
+                    _logger.LogError(ex, "Error updating user data in IAM for user ID: {UserId}", user.Id);
+                }
+
+                return new UpdateResponseDto { User = _mapper.Map<UserDto>(user) };
+            }
+            catch (RpcException rpcEx)
+            {
+                _logger.LogError(rpcEx, "RPC error updating user with ID: {UserId}", dto.Id);
+                throw;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error updating user with ID: {UserId}", dto.Id);
+                throw new RpcException(new Status(StatusCode.Internal, ex.Message));
+            }
         }
 
         public async Task<DeleteResponseDto> DeleteUser(DeleteRequestDto dto, CancellationToken ct = default)
         {
-            await using var dbContext = await _dbFactory.CreateDbContextAsync(ct);
-            var user = await dbContext.Users.FirstOrDefaultAsync(x => x.Id == dto.Id, cancellationToken: ct);
-
-            if (user == null)
-                throw new RpcException(new Status(StatusCode.NotFound, $"User not found. Id = {dto.Id}"));
-
-            var a = await dbContext.Users.Where(x => x.Id == dto.Id).ExecuteDeleteAsync(ct);
-
-            await dbContext.SaveChangesAsync(ct);
-
-            return new DeleteResponseDto()
+            try
             {
-                IsSuccess = true
-            };
+                await using var dbContext = await _dbFactory.CreateDbContextAsync(ct);
+                var user = await dbContext.Users.FirstOrDefaultAsync(x => x.Id == dto.Id, cancellationToken: ct);
+
+                if (user == null)
+                    throw new RpcException(new Status(StatusCode.NotFound, $"User not found. Id = {dto.Id}"));
+
+                var deleteResult = await dbContext.Users.Where(x => x.Id == dto.Id).ExecuteDeleteAsync(ct);
+
+                if (deleteResult > 0)
+                {
+                    // Удаляем пользователя из IAM сервиса
+                    try
+                    {
+                        _logger.LogInformation("Deleting user from IAM service: {UserId}", dto.Id);
+                        var deleteUserRequest = new Service.Iam.DeleteUserRequest { UserId = dto.Id.ToString() };
+                        var iamResponse = await _iamService.DeleteUserAsync(deleteUserRequest, cancellationToken: ct);
+                        
+                        if (!iamResponse.Success)
+                        {
+                            _logger.LogWarning("Failed to delete user from IAM: {ErrorMessage}", iamResponse.ErrorMessage);
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        // Логируем ошибку, но не фейлим операцию удаления в UserService
+                        _logger.LogError(ex, "Error deleting user from IAM service: {UserId}", dto.Id);
+                    }
+                }
+
+                return new DeleteResponseDto()
+                {
+                    IsSuccess = deleteResult > 0
+                };
+            }
+            catch (RpcException rpcEx)
+            {
+                _logger.LogError(rpcEx, "RPC error deleting user with ID: {UserId}", dto.Id);
+                throw;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error deleting user with ID: {UserId}", dto.Id);
+                throw new RpcException(new Status(StatusCode.Internal, ex.Message));
+            }
         }
 
         public async Task<SearchResponseDto> SearchUsers(SearchRequestDto dto, CancellationToken ct = default)
@@ -136,6 +239,32 @@ namespace Soundy.UserService.Services
                 Users = users,
                 PageNumber = dto.PageNumber,
                 PageSize = dto.PageSize
+            };
+        }
+
+        /// <summary>
+        /// Получает список последних зарегистрированных пользователей
+        /// </summary>
+        /// <param name="dto">Параметры запроса с количеством записей</param>
+        /// <param name="ct">Токен отмены</param>
+        /// <returns>Список последних зарегистрированных пользователей</returns>
+        public async Task<GetLatestUsersResponseDto> GetLatestUsersAsync(GetLatestUsersRequestDto dto, CancellationToken ct = default)
+        {
+            int count = dto.Count > 0 ? dto.Count : 10; // По умолчанию 10, если передано некорректное значение
+            
+            await using var dbContext = await _dbFactory.CreateDbContextAsync(ct);
+            
+            var latestUsers = await dbContext.Users
+                .AsNoTracking()
+                .OrderByDescending(u => u.CreatedAt)
+                .Take(count)
+                .ToListAsync(ct);
+
+            var userDtos = latestUsers.Select(user => _mapper.Map<UserDto>(user)).ToList();
+
+            return new GetLatestUsersResponseDto
+            {
+                Users = userDtos
             };
         }
     }

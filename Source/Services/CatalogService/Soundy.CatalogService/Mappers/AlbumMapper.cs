@@ -37,6 +37,23 @@ namespace Soundy.CatalogService.Mappers
             CreateMap<GetByAuthorIdResponseDto, GetByAuthorIdResponse>()
                 .ForMember(dest => dest.Albums, opt => opt.MapFrom(src => src.Albums));
 
+            CreateMap<SearchRequest, SearchRequestDto>()
+                .ForMember(dest => dest.Pattern, opt => opt.MapFrom(src => src.Pattern))
+                .ForMember(dest => dest.PageSize, opt => opt.MapFrom(src => src.PageSize))
+                .ForMember(dest => dest.PageNum, opt => opt.MapFrom(src => src.PageNum));
+
+            CreateMap<SearchResponseDto, SearchResponse>()
+                .ForMember(dest => dest.Pattern, opt => opt.MapFrom(src => src.Pattern))
+                .ForMember(dest => dest.PageSize, opt => opt.MapFrom(src => src.PageSize))
+                .ForMember(dest => dest.PageNum, opt => opt.MapFrom(src => src.PageNum))
+                .ForMember(dest => dest.Albums, opt => opt.MapFrom(src => src.Albums));
+
+            CreateMap<GetLatestAlbumsRequest, GetLatestAlbumsRequestDto>()
+                .ForMember(dest => dest.Count, opt => opt.MapFrom(src => src.Count));
+
+            CreateMap<GetLatestAlbumsResponseDto, GetLatestAlbumsResponse>()
+                .ForMember(dest => dest.Albums, opt => opt.MapFrom(src => src.Albums));
+
             CreateMap<Entities.User, Types.User>()
                 .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.Id.ToString()))
                 .ForMember(dest => dest.Email, opt => opt.MapFrom(src => src.Email))

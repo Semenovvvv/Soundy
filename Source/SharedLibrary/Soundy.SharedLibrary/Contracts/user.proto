@@ -2,6 +2,7 @@
 
 package service.user;
 
+import "google/protobuf/timestamp.proto";
 import "Types/type_user.proto";
 
 service UserGrpcService {
@@ -10,6 +11,7 @@ service UserGrpcService {
     rpc Update (UpdateRequest) returns (UpdateResponse);
     rpc Delete (DeleteRequest) returns (DeleteResponse);
     rpc Search (SearchRequest) returns (SearchResponse);
+    rpc GetLatestUsers (GetLatestUsersRequest) returns (GetLatestUsersResponse);
 }
 
 message CreateRequest{
@@ -32,7 +34,9 @@ message GetByIdResponse {
 message UpdateRequest {
     string id = 1;
     string username = 2;
-    string email = 3;
+    optional string email = 3;
+    optional string bio = 4;
+    optional string avatar_url = 5;
 }
 message UpdateResponse {
     types.User user = 1;
@@ -54,4 +58,11 @@ message SearchResponse {
     int32 page_number = 1;
     int32 page_size = 2;
     repeated types.User users = 3;
+}
+
+message GetLatestUsersRequest {
+    int32 count = 1;
+}
+message GetLatestUsersResponse {
+    repeated types.User users = 1;
 }

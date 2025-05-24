@@ -49,7 +49,9 @@ namespace Soundy.UserService.Mappers
             CreateMap<UpdateRequest, UpdateRequestDto>()
                 .ForMember(dto => dto.Id, x => x.MapFrom(src => Guid.Parse(src.Id)))
                 .ForMember(dto => dto.UserName, x => x.MapFrom(src => src.Username))
-                .ForMember(dto => dto.Email, x => x.MapFrom(src => src.Email));
+                .ForMember(dto => dto.Email, x => x.MapFrom(src => src.Email))
+                .ForMember(dto => dto.Bio, x => x.MapFrom(src => src.Bio))
+                .ForMember(dto => dto.AvatarUrl, x => x.MapFrom(src => src.AvatarUrl));
 
             CreateMap<UpdateResponseDto, UpdateResponse>()
                 .ForMember(src => src.User, x => x.MapFrom(dto => dto.User));
@@ -77,6 +79,13 @@ namespace Soundy.UserService.Mappers
                 .ForMember(d => d.CreatedAt, x => x.MapFrom(src => src.CreatedAt))
                 .ForMember(d => d.AvatarUrl, x => x.MapFrom(src => src.AvatarUrl))
                 .ForMember(d => d.Bio, x => x.MapFrom(src => src.Bio));
+
+            // GetLatestUsers
+            CreateMap<GetLatestUsersRequest, GetLatestUsersRequestDto>()
+                .ForMember(dto => dto.Count, x => x.MapFrom(src => src.Count));
+
+            CreateMap<GetLatestUsersResponseDto, GetLatestUsersResponse>()
+                .ForMember(src => src.Users, x => x.MapFrom(dto => dto.Users));
         }
     }
 }

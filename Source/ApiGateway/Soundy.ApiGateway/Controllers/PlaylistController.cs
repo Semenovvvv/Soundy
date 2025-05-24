@@ -105,4 +105,40 @@ public class PlaylistController : ControllerBase
         var response = await _playlistService.DeleteAsync(request, cancellationToken: ct);
         return Ok(response);
     }
+
+    /// <summary>
+    /// Выполняет поиск плейлистов по названию с пагинацией
+    /// </summary>
+    /// <param name="pattern">Строка поиска</param>
+    /// <param name="pageSize">Размер страницы</param>
+    /// <param name="pageNum">Номер страницы</param>
+    /// <param name="ct">Токен отмены</param>
+    /// <returns>Список плейлистов, соответствующих критериям поиска</returns>
+    [HttpGet("search")]
+    public async Task<IActionResult> SearchAsync([FromQuery] string pattern, [FromQuery] int pageSize = 10, [FromQuery] int pageNum = 1, CancellationToken ct = default)
+    {
+        var request = new SearchRequest
+        {
+            Pattern = pattern,
+            PageSize = pageSize,
+            PageNum = pageNum
+        };
+
+        var response = await _playlistService.SearchAsync(request, cancellationToken: ct);
+        return Ok(response);
+    }
+
+    /// <summary>
+    /// Получает список последних созданных плейлистов
+    /// </summary>
+    /// <param name="count">Количество записей для получения (по умолчанию 10)</param>
+    /// <param name="ct">Токен отмены</param>
+    /// <returns>Список последних созданных плейлистов</returns>
+    [HttpGet("latest")]
+    public async Task<IActionResult> GetLatestPlaylists([FromQuery] int count = 10, CancellationToken ct = default)
+    {
+        var request = new GetLatestPlaylistsRequest { Count = count };
+        var response = await _playlistService.GetLatestPlaylistsAsync(request, cancellationToken: ct);
+        return Ok(response);
+    }
 }

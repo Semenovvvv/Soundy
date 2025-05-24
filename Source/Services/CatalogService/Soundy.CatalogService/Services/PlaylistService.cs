@@ -257,5 +257,124 @@ namespace Soundy.CatalogService.Services
                 IsSuccess = true
             };
         }
+
+        /// <summary>
+        /// Выполняет поиск плейлистов по названию с пагинацией
+        /// </summary>
+        /// <param name="dto">Параметры поиска</param>
+        /// <param name="ct">Токен отмены</param>
+        /// <returns>Результаты поиска плейлистов</returns>
+        public async Task<SearchResponseDto> SearchAsync(SearchRequestDto dto, CancellationToken ct = default)
+        {
+            await using var dbContext = await _dbFactory.CreateDbContextAsync(ct);
+
+            var playlistsQuery = dbContext.Playlists
+                .AsNoTracking()
+                .Where(p => EF.Functions.Like(p.Title, $"%{dto.Pattern}%"))
+                .Skip((dto.PageNum - 1) * dto.PageSize)
+                .Take(dto.PageSize);
+            
+            var playlists = await playlistsQuery.ToListAsync(ct);
+            
+            // Load author information for each playlist
+            var authorIds = playlists.Select(p => p.AuthorId).Distinct().ToList();
+            var authors = new Dictionary<Guid, User>();
+            
+            foreach (var authorId in authorIds)
+            {
+                try
+                {
+                    var response = await _userService.GetByIdAsync(new GetByIdRequest { Id = authorId.ToString() }, cancellationToken: ct);
+                    if (response?.User != null)
+                    {
+                        authors[authorId] = _mapper.Map<User>(response.User);
+                    }
+                }
+                catch (Exception)
+                {
+                    // Continue if user not found
+                }
+            }
+            
+            // Set author for each playlist
+            foreach (var playlist in playlists)
+            {
+                if (authors.TryGetValue(playlist.AuthorId, out var author))
+                {
+                    playlist.Author = author;
+                }
+            }
+
+            var playlistDtos = playlists.Select(p => _mapper.Map<PlaylistDto>(p)).ToList();
+
+            return new SearchResponseDto()
+            {
+                Pattern = dto.Pattern,
+                PageNum = dto.PageNum,
+                PageSize = dto.PageSize,
+                Playlists = playlistDtos
+            };
+        }
+
+        /// <summary>
+        /// Получает список последних созданных плейлистов
+        /// </summary>
+        /// <param name="dto">Параметры запроса с количеством записей</param>
+        /// <param name="ct">Токен отмены</param>
+        /// <returns>Список последних созданных плейлистов</returns>
+        public async Task<GetLatestPlaylistsResponseDto> GetLatestPlaylistsAsync(GetLatestPlaylistsRequestDto dto, CancellationToken ct = default)
+        {
+            int count = dto.Count > 0 ? dto.Count : 10; // По умолчанию 10, если передано некорректное значение
+            
+            await using var dbContext = await _dbFactory.CreateDbContextAsync(ct);
+            
+            var latestPlaylists = await dbContext.Playlists
+                .AsNoTracking()
+                .Include(p => p.Tracks)
+                .ThenInclude(pt => pt.Track)
+                .Where(p => !p.IsFavorite) // Исключаем плейлисты-избранное, так как они создаются автоматически
+                .OrderByDescending(p => p.CreatedAt)
+                .Take(count)
+                .ToListAsync(ct);
+
+            // Загрузим информацию об авторах для каждого плейлиста
+            var authorIds = latestPlaylists.Select(p => p.AuthorId).Distinct().ToList();
+            var authors = new Dictionary<Guid, User>();
+            
+            foreach (var authorId in authorIds)
+            {
+                try
+                {
+                    var userResponse = await _userService.GetByIdAsync(
+                        new GetByIdRequest { Id = authorId.ToString() }, 
+                        cancellationToken: ct);
+                        
+                    if (userResponse?.User != null)
+                    {
+                        authors[authorId] = _mapper.Map<User>(userResponse.User);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    // Продолжаем работу даже если не удалось получить информацию об авторе
+                }
+            }
+            
+            // Присвоим авторов плейлистам
+            foreach (var playlist in latestPlaylists)
+            {
+                if (authors.TryGetValue(playlist.AuthorId, out var author))
+                {
+                    playlist.Author = author;
+                }
+            }
+
+            var playlistDtos = latestPlaylists.Select(playlist => _mapper.Map<PlaylistDto>(playlist)).ToList();
+
+            return new GetLatestPlaylistsResponseDto
+            {
+                Playlists = playlistDtos
+            };
+        }
     }
 }

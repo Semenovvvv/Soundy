@@ -6,10 +6,16 @@ using Soundy.CatalogService.Interfaces;
 
 namespace Soundy.CatalogService.Controllers
 {
-    public class PlaylistGrpcController(IPlaylistService playlistService, IMapper mapper) : PlaylistGrpcService.PlaylistGrpcServiceBase
+    public class PlaylistGrpcController : PlaylistGrpcService.PlaylistGrpcServiceBase
     {
-        private IPlaylistService _playlistService = playlistService;
-        private IMapper _mapper = mapper;
+        private readonly IPlaylistService _playlistService;
+        private readonly IMapper _mapper;
+
+        public PlaylistGrpcController(IPlaylistService playlistService, IMapper mapper)
+        {
+            _playlistService = playlistService;
+            _mapper = mapper;
+        }
 
         public override async Task<CreateResponse> Create(CreateRequest request, ServerCallContext context)
         {
@@ -65,6 +71,32 @@ namespace Soundy.CatalogService.Controllers
             var requestDto = _mapper.Map<DeleteRequestDto>(request);
             var responseDto = await _playlistService.DeleteAsync(requestDto, context.CancellationToken);
             return _mapper.Map<DeleteResponse>(responseDto);
+        }
+
+        /// <summary>
+        /// Выполняет поиск плейлистов по названию
+        /// </summary>
+        /// <param name="request">Параметры поиска</param>
+        /// <param name="context">Контекст gRPC запроса</param>
+        /// <returns>Результаты поиска плейлистов</returns>
+        public override async Task<SearchResponse> Search(SearchRequest request, ServerCallContext context)
+        {
+            var requestDto = _mapper.Map<SearchRequestDto>(request);
+            var responseDto = await _playlistService.SearchAsync(requestDto, context.CancellationToken);
+            return _mapper.Map<SearchResponse>(responseDto);
+        }
+
+        /// <summary>
+        /// Получает список последних созданных плейлистов
+        /// </summary>
+        /// <param name="request">Запрос с количеством записей</param>
+        /// <param name="context">Контекст gRPC запроса</param>
+        /// <returns>Список последних созданных плейлистов</returns>
+        public override async Task<GetLatestPlaylistsResponse> GetLatestPlaylists(GetLatestPlaylistsRequest request, ServerCallContext context)
+        {
+            var requestDto = _mapper.Map<GetLatestPlaylistsRequestDto>(request);
+            var responseDto = await _playlistService.GetLatestPlaylistsAsync(requestDto, context.CancellationToken);
+            return _mapper.Map<GetLatestPlaylistsResponse>(responseDto);
         }
     }
 }

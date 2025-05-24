@@ -212,13 +212,20 @@ public class AuthController : ControllerBase
     {
         try
         {
-            // IAM сервис пока не имеет прямого метода для обновления токена через gRPC
-            // Поэтому мы используем SignIn и добавляем логику обновления токена
-            var response = await _iamClient.SignInAsync(new SignInRequest
+            if (string.IsNullOrEmpty(request.RefreshToken))
             {
-                Username = request.Username,
-                Password = request.Password
+                return BadRequest(new { message = "Refresh token is required" });
+            }
+
+            var response = await _iamClient.RefreshTokenAsync(new Service.Iam.RefreshTokenRequest
+            {
+                RefreshToken = request.RefreshToken
             });
+
+            if (!response.Success)
+            {
+                return Unauthorized(new { message = response.ErrorMessage });
+            }
 
             return Ok(new
             {
@@ -335,8 +342,7 @@ public class AuthController : ControllerBase
 
 public class RefreshTokenRequest
 {
-    public string Username { get; set; } = null!;
-    public string Password { get; set; } = null!;
+    public string RefreshToken { get; set; } = null!;
 }
 
 public class UserRegistrationRequest

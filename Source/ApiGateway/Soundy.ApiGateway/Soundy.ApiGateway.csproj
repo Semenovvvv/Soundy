@@ -10,6 +10,7 @@
     <DockerfileContext>..\..</DockerfileContext>
     <DockerComposeProjectPath>..\..\docker-compose.dcproj</DockerComposeProjectPath>
 	<ProtoPath>..\..\SharedLibrary\Soundy.SharedLibrary\Contracts</ProtoPath>
+	<ErrorOnDuplicatePublishOutputFiles>false</ErrorOnDuplicatePublishOutputFiles>
   </PropertyGroup>
 
   <ItemGroup>

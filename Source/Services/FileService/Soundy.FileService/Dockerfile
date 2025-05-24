@@ -1,4 +1,3 @@
-
 # Этот этап используется при запуске из VS в быстром режиме (по умолчанию для конфигурации отладки)
 FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS base
 
@@ -16,7 +15,7 @@ FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
 COPY ["Services/FileService/Soundy.FileService/Soundy.FileService.csproj", "Services/FileService/Soundy.FileService/"]
-COPY ["SharedLibrary/Soundy.SharedLibrary.csproj", "SharedLibrary/"]
+COPY ["SharedLibrary/Soundy.SharedLibrary/Soundy.SharedLibrary.csproj", "SharedLibrary/Soundy.SharedLibrary/"]
 RUN dotnet restore "./Services/FileService/Soundy.FileService/Soundy.FileService.csproj"
 COPY . .
 WORKDIR "/src/Services/FileService/Soundy.FileService"

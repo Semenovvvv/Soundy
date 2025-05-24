@@ -10,7 +10,7 @@ FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
 COPY ["Services/IAM/Soundy.IAM/Soundy.IAM.csproj", "Services/IAM/Soundy.IAM/"]
-COPY ["SharedLibrary/Soundy.SharedLibrary.csproj", "SharedLibrary/"]
+COPY ["SharedLibrary/Soundy.SharedLibrary/Soundy.SharedLibrary.csproj", "SharedLibrary/Soundy.SharedLibrary/"]
 RUN dotnet restore "./Services/IAM/Soundy.IAM/./Soundy.IAM.csproj"
 COPY . .
 WORKDIR "/src/Services/IAM/Soundy.IAM"

@@ -8,6 +8,7 @@
 		<DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
 		<DockerfileContext>..\..\..</DockerfileContext>
 		<ProtoPath>..\..\..\SharedLibrary\Soundy.SharedLibrary\Contracts</ProtoPath>
+		<ErrorOnDuplicatePublishOutputFiles>false</ErrorOnDuplicatePublishOutputFiles>
 	</PropertyGroup>
 
 	<ItemGroup>

@@ -177,7 +177,8 @@ namespace Soundy.FileService.Services
             var processStartInfo = new ProcessStartInfo
             {
                 FileName = "ffmpeg",
-                Arguments = $"-i \"{inputPath}\" -codec:a aac -b:a 128k -hls_time 4 -hls_playlist_type vod -hls_segment_filename \"{outputDir}/segment_%03d.ts\" \"{outputDir}/index.m3u8\"",
+                Arguments = $"-i \"{inputPath}\" -codec:a aac -b:a 128k -hls_time 4 -hls_playlist_type vod " +
+                            $"-hls_segment_filename \"{outputDir}/segment_%03d.ts\" \"{outputDir}/index.m3u8\"",
                 RedirectStandardOutput = true,
                 RedirectStandardError = true,
                 UseShellExecute = false,

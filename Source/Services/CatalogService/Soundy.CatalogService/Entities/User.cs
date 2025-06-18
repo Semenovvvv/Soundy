@@ -1,5 +1,8 @@
-﻿namespace Soundy.CatalogService.Entities
+﻿using System.ComponentModel.DataAnnotations.Schema;
+
+namespace Soundy.CatalogService.Entities
 {
+    [NotMapped]
     public class User
     {
         public Guid Id { get; set; }

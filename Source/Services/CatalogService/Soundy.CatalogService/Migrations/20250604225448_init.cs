@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace Soundy.CatalogService.Migrations
 {
     /// <inheritdoc />
-    public partial class Fix : Migration
+    public partial class init : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -32,10 +32,10 @@ namespace Soundy.CatalogService.Migrations
                 {
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
                     AuthorId = table.Column<Guid>(type: "uuid", nullable: false),
-                    Name = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
+                    Title = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     IsFavorite = table.Column<bool>(type: "boolean", nullable: false),
-                    AvatarUrl = table.Column<string>(type: "text", nullable: false)
+                    AvatarUrl = table.Column<string>(type: "text", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -52,8 +52,7 @@ namespace Soundy.CatalogService.Migrations
                     AlbumId = table.Column<Guid>(type: "uuid", nullable: false),
                     Duration = table.Column<int>(type: "integer", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    AvatarUrl = table.Column<string>(type: "text", nullable: false),
-                    PlaylistId = table.Column<Guid>(type: "uuid", nullable: true)
+                    AvatarUrl = table.Column<string>(type: "text", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -64,17 +63,66 @@ namespace Soundy.CatalogService.Migrations
                         principalTable: "Albums",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "LikedTracks",
+                columns: table => new
+                {
+                    UserId = table.Column<Guid>(type: "uuid", nullable: false),
+                    TrackId = table.Column<Guid>(type: "uuid", nullable: false),
+                    LikedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_LikedTracks", x => new { x.UserId, x.TrackId });
                     table.ForeignKey(
-                        name: "FK_Tracks_Playlists_PlaylistId",
+                        name: "FK_LikedTracks_Tracks_TrackId",
+                        column: x => x.TrackId,
+                        principalTable: "Tracks",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "PlaylistsTracks",
+                columns: table => new
+                {
+                    PlaylistId = table.Column<Guid>(type: "uuid", nullable: false),
+                    TrackId = table.Column<Guid>(type: "uuid", nullable: false),
+                    AddedDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_PlaylistsTracks", x => new { x.PlaylistId, x.TrackId });
+                    table.ForeignKey(
+                        name: "FK_PlaylistsTracks_Playlists_PlaylistId",
                         column: x => x.PlaylistId,
                         principalTable: "Playlists",
-                        principalColumn: "Id");
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_PlaylistsTracks_Tracks_TrackId",
+                        column: x => x.TrackId,
+                        principalTable: "Tracks",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
                 });
+
+            migrationBuilder.CreateIndex(
+                name: "IX_LikedTracks_TrackId",
+                table: "LikedTracks",
+                column: "TrackId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Playlists_AuthorId",
                 table: "Playlists",
                 column: "AuthorId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_PlaylistsTracks_TrackId",
+                table: "PlaylistsTracks",
+                column: "TrackId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Tracks_AlbumId",
@@ -85,24 +133,25 @@ namespace Soundy.CatalogService.Migrations
                 name: "IX_Tracks_AuthorId",
                 table: "Tracks",
                 column: "AuthorId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Tracks_PlaylistId",
-                table: "Tracks",
-                column: "PlaylistId");
         }
 
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
+                name: "LikedTracks");
+
+            migrationBuilder.DropTable(
+                name: "PlaylistsTracks");
+
+            migrationBuilder.DropTable(
+                name: "Playlists");
+
+            migrationBuilder.DropTable(
                 name: "Tracks");
 
             migrationBuilder.DropTable(
                 name: "Albums");
-
-            migrationBuilder.DropTable(
-                name: "Playlists");
         }
     }
 }

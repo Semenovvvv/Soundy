@@ -1,7 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Service.User;
 using Soundy.ApiGateway.Configurations;
-using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.ComponentModel.DataAnnotations;
 
@@ -14,9 +13,7 @@ namespace Soundy.ApiGateway.Controllers
         private readonly UserGrpcService.UserGrpcServiceClient _client;
         private readonly ILogger<UserController> _logger;
 
-        public UserController(
-            UserGrpcService.UserGrpcServiceClient client,
-            ILogger<UserController> logger)
+        public UserController(UserGrpcService.UserGrpcServiceClient client, ILogger<UserController> logger)
         {
             _client = client;
             _logger = logger;
@@ -26,6 +23,7 @@ namespace Soundy.ApiGateway.Controllers
         /// Создает нового пользователя.
         /// </summary>
         [HttpPost]
+        [JwtAuthorize]
         public async Task<IActionResult> CreateUserAsync([FromBody] CreateRequest dto,
             CancellationToken ct = default)
         {
@@ -37,6 +35,7 @@ namespace Soundy.ApiGateway.Controllers
         /// Получает пользователя по ID.
         /// </summary>
         [HttpGet("{id}")]
+        [JwtAuthorize]
         public async Task<IActionResult> GetUserById([FromRoute] string id, CancellationToken ct = default)
         {
             var request = new GetByIdRequest { Id = id };
@@ -89,12 +88,6 @@ namespace Soundy.ApiGateway.Controllers
                     request.AvatarUrl = dto.AvatarUrl;
                 }
 
-                // Email больше не обновляется
-                // if (dto.Email != null)
-                // {
-                //     request.Email = dto.Email;
-                // }
-
                 _logger.LogInformation("Updating user profile for ID: {UserId}", id);
                 var response = await _client.UpdateAsync(request, cancellationToken: ct);
                 
@@ -138,6 +131,7 @@ namespace Soundy.ApiGateway.Controllers
         /// Удаляет пользователя.
         /// </summary>
         [HttpDelete("{id}")]
+        [JwtAuthorize]
         public async Task<IActionResult> DeleteUser([FromRoute] string id, CancellationToken ct = default)
         {
             var request = new DeleteRequest() { Id = id };
@@ -149,6 +143,7 @@ namespace Soundy.ApiGateway.Controllers
         /// Поиск пользователей по фильтру.
         /// </summary>
         [HttpGet("search")]
+        [JwtAuthorize]
         public async Task<IActionResult> SearchUsers([FromQuery] SearchRequest dto, CancellationToken ct = default)
         {
             var response = await _client.SearchAsync(dto, cancellationToken: ct);
@@ -165,7 +160,6 @@ namespace Soundy.ApiGateway.Controllers
         {
             try
             {
-                // Получаем ID пользователя из JWT токена с помощью метода расширения GetUserId
                 var userId = this.GetUserId();
                 if (string.IsNullOrEmpty(userId))
                 {
@@ -230,6 +224,7 @@ namespace Soundy.ApiGateway.Controllers
         /// <param name="ct">Токен отмены</param>
         /// <returns>Список последних зарегистрированных пользователей</returns>
         [HttpGet("latest")]
+        [JwtAuthorize]
         public async Task<IActionResult> GetLatestUsers([FromQuery] int count = 10, CancellationToken ct = default)
         {
             var request = new GetLatestUsersRequest { Count = count };

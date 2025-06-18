@@ -22,7 +22,8 @@ namespace Soundy.CatalogService.Mappers
                 .ForMember(d => d.Track, o => o.MapFrom(s => s.Track));
 
             CreateMap<GetByIdRequest, GetByIdRequestDto>()
-                .ForMember(d => d.Id, o => o.MapFrom(s => Guid.Parse(s.Id)));
+                .ForMember(d => d.Id, o => o.MapFrom(s => Guid.Parse(s.Id)))
+                .ForMember(dest => dest.UserId, opt => opt.MapFrom(src => !string.IsNullOrEmpty(src.UserId) ? (Guid?)Guid.Parse(src.UserId) : null));
 
             CreateMap<GetByIdResponseDto, GetByIdResponse>()
                 .ForMember(d => d.Track, o => o.MapFrom(s => s.Track));
@@ -43,12 +44,15 @@ namespace Soundy.CatalogService.Mappers
             CreateMap<SearchRequest, SearchRequestDto>()
                 .ForMember(d => d.Pattern, o => o.MapFrom(s => s.Pattern))
                 .ForMember(d => d.PageSize, o => o.MapFrom(s => s.PageSize))
-                .ForMember(d => d.PageNum, o => o.MapFrom(s => s.PageNum));
+                .ForMember(d => d.PageNum, o => o.MapFrom(s => s.PageNum))
+                .ForMember(dest => dest.UserId, opt => opt.MapFrom(src => !string.IsNullOrEmpty(src.UserId) ? (Guid?)Guid.Parse(src.UserId) : null));
 
             CreateMap<SearchResponseDto, SearchResponse>()
                 .ForMember(d => d.Pattern, o => o.MapFrom(s => s.Pattern))
                 .ForMember(d => d.PageSize, o => o.MapFrom(s => s.PageSize))
                 .ForMember(d => d.PageNum, o => o.MapFrom(s => s.PageNum))
+                .ForMember(dest => dest.PageCount, opt => opt.MapFrom(src => src.PageCount))
+                .ForMember(dest => dest.TotalCount, opt => opt.MapFrom(src => src.TotalCount))
                 .ForMember(d => d.Tracks, o => o.MapFrom(s => s.Tracks));
 
             //CreateMap<GetListByPlaylistRequest, GetListByPlaylistRequestDto>()
@@ -59,21 +63,23 @@ namespace Soundy.CatalogService.Mappers
             //    .ForMember(d => d.Playlist, o => o.MapFrom(s => s.Playlist))
             //    .ForMember(d => d.Tracks, o => o.MapFrom(s => s.Tracks));
 
-            CreateMap<Track, TrackDto>()
-                .ForMember(dest => dest.Id, opt => opt.MapFrom(src => Guid.Parse(src.Id)))
+            CreateMap<Entities.Track, TrackDto>()
+                .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.Id))
                 .ForMember(dest => dest.Title, opt => opt.MapFrom(src => src.Title))
-                .ForMember(dest => dest.AuthorId, opt => opt.MapFrom(src => Guid.Parse(src.User.Id)))
-                .ForMember(dest => dest.AlbumId, opt => opt.MapFrom(src => Guid.Parse(src.AlbumId)))
+                .ForMember(dest => dest.AuthorId, opt => opt.MapFrom(src => src.AuthorId))
+                .ForMember(dest => dest.Author, opt => opt.MapFrom(src => src.Author))
+                .ForMember(dest => dest.AlbumId, opt => opt.MapFrom(src => src.AlbumId))
+                .ForMember(dest => dest.CreatedAt, opt => opt.MapFrom(src => src.CreatedAt))
                 .ForMember(dest => dest.Duration, opt => opt.MapFrom(src => src.Duration))
-                .ForMember(dest => dest.CreatedAt, opt => opt.MapFrom(src => src.CreatedAt.ToDateTime()))
-                .ForMember(dest => dest.AvatarUrl, opt => opt.MapFrom(src => src.AvatarUrl));
+                .ForMember(dest => dest.AvatarUrl, opt => opt.MapFrom(src => src.AvatarUrl))
+                .ForMember(dest => dest.IsLiked, opt => opt.MapFrom(src => src.LikedBy.Any()));
 
             CreateMap<TrackDto, Track>()
                 .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.Id.ToString()))
                 .ForMember(dest => dest.Title, opt => opt.MapFrom(src => src.Title))
                 .ForMember(dest => dest.User, opt => opt.MapFrom(src => src.Author))
                 .ForMember(dest => dest.AlbumId, opt => opt.MapFrom(src => src.AlbumId.ToString()))
-                .ForMember(dest => dest.CreatedAt, opt => opt.MapFrom(src => Timestamp.FromDateTime(src.CreatedAt.ToUniversalTime())))
+                .ForMember(dest => dest.CreatedAt, opt => opt.MapFrom(src => src.CreatedAt.ToTimestamp()))
                 .ForMember(dest => dest.Duration, opt => opt.MapFrom(src => src.Duration))
                 .ForMember(dest => dest.AvatarUrl, opt => opt.MapFrom(src => src.AvatarUrl));
 
@@ -81,6 +87,29 @@ namespace Soundy.CatalogService.Mappers
                 .ForMember(dest => dest.UserId, opt => opt.MapFrom(src => Guid.Parse(src.UserId)));
 
             CreateMap<GetListByUserIdResponseDto, GetListByUserIdResponse>()
+                .ForMember(dest => dest.Tracks, opt => opt.MapFrom(src => src.Tracks));
+
+            // Новые маппинги для лайков
+            CreateMap<LikeTrackRequest, LikeTrackRequestDto>()
+                .ForMember(dest => dest.TrackId, opt => opt.MapFrom(src => Guid.Parse(src.TrackId)))
+                .ForMember(dest => dest.UserId, opt => opt.MapFrom(src => Guid.Parse(src.UserId)));
+
+            CreateMap<LikeTrackResponseDto, LikeTrackResponse>()
+                .ForMember(dest => dest.Success, opt => opt.MapFrom(src => src.Success))
+                .ForMember(dest => dest.Track, opt => opt.MapFrom(src => src.Track));
+
+            CreateMap<UnlikeTrackRequest, UnlikeTrackRequestDto>()
+                .ForMember(dest => dest.TrackId, opt => opt.MapFrom(src => Guid.Parse(src.TrackId)))
+                .ForMember(dest => dest.UserId, opt => opt.MapFrom(src => Guid.Parse(src.UserId)));
+
+            CreateMap<UnlikeTrackResponseDto, UnlikeTrackResponse>()
+                .ForMember(dest => dest.Success, opt => opt.MapFrom(src => src.Success))
+                .ForMember(dest => dest.Track, opt => opt.MapFrom(src => src.Track));
+
+            CreateMap<GetLikedTracksRequest, GetLikedTracksRequestDto>()
+                .ForMember(dest => dest.UserId, opt => opt.MapFrom(src => Guid.Parse(src.UserId)));
+
+            CreateMap<GetLikedTracksResponseDto, GetLikedTracksResponse>()
                 .ForMember(dest => dest.Tracks, opt => opt.MapFrom(src => src.Tracks));
         }
     }

@@ -172,7 +172,13 @@ namespace Soundy.CatalogService.Services
                     foreach (var album in albums)
                     {
                         album.Author = author;
+
+                        foreach (var track in album.Tracks)
+                        {
+                            track.Author = author;
+                        }
                     }
+
                     _logger.LogInformation("Successfully loaded author information for albums by author {AuthorId}", dto.AuthorId);
                 }
             }
@@ -266,6 +272,17 @@ namespace Soundy.CatalogService.Services
                         
                     if (userResponse?.User != null)
                     {
+                        var author = _mapper.Map<User>(userResponse.User);
+                        foreach (var album in latestAlbums.Where(x => x.AuthorId == authorId))
+                        {
+                            album.Author = author;
+
+                            foreach (var track in album.Tracks)
+                            {
+                                track.Author = author;
+                            }
+                        }
+
                         authors[authorId] = _mapper.Map<User>(userResponse.User);
                     }
                 }

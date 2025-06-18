@@ -7,6 +7,7 @@ namespace Soundy.CatalogService.Dto
         public Guid Id { get; set; }
         public string Title { get; set; }
         public string AuthorId { get; set; }
+        public User Author { get; set; }
         public DateTime CreatedAt { get; set; }
         public string AvatarUrl { get; set; }
         public IEnumerable<Track> Tracks { get; set; }

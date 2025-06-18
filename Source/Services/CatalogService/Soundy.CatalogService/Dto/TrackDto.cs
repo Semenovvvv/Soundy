@@ -12,4 +12,5 @@ public class TrackDto
     public DateTime CreatedAt { get; set; }
     public int Duration { get; set; }
     public string? AvatarUrl { get; set; }
+    public bool IsLiked { get; set; }
 }

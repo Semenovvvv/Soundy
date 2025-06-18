@@ -29,8 +29,6 @@ namespace Soundy.CatalogService.Services
             {
                 await using var dbContext = await _dbFactory.CreateDbContextAsync(ct);
 
-                
-
                 await _userService.GetByIdAsync(new GetByIdRequest() { Id = dto.AuthorId.ToString() }, cancellationToken: ct);
 
                 var playlist = new Playlist()

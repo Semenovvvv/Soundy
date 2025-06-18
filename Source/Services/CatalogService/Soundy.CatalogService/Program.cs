@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Server.Kestrel.Core;
+using Microsoft.AspNetCore.ResponseCompression;
 using Microsoft.EntityFrameworkCore;
 using Soundy.CatalogService.Controllers;
 using Soundy.CatalogService.DataAccess;
@@ -15,6 +16,24 @@ builder.Configuration.AddEnvironmentVariables();
 var configuration = builder.Configuration;
 
 builder.Services.AddGrpc();
+
+// Добавляем сжатие ответов
+builder.Services.AddResponseCompression(options =>
+{
+    options.EnableForHttps = true;
+    options.Providers.Add<BrotliCompressionProvider>();
+    options.Providers.Add<GzipCompressionProvider>();
+});
+
+builder.Services.Configure<BrotliCompressionProviderOptions>(options =>
+{
+    options.Level = System.IO.Compression.CompressionLevel.Fastest;
+});
+
+builder.Services.Configure<GzipCompressionProviderOptions>(options =>
+{
+    options.Level = System.IO.Compression.CompressionLevel.Fastest;
+});
 
 builder.Services.AddAutoMapper(typeof(PlaylistMapper));
 builder.Services.AddAutoMapper(typeof(TrackMapper));
@@ -34,6 +53,9 @@ builder.WebHost.ConfigureKestrel(options =>
 });
 
 var app = builder.Build();
+
+// Включаем сжатие ответов
+app.UseResponseCompression();
 
 using (var scope = app.Services.CreateScope())
 {

@@ -8,7 +8,8 @@ namespace Soundy.FileService.Configurations
 {
     public static class S3MinioConfiguration
     {
-        public static void ConfigureS3(this IServiceCollection serviceCollection, IConfiguration configuration)
+        public static void ConfigureS3(this IServiceCollection serviceCollection, 
+            IConfiguration configuration)
         {
             var awsOptions = configuration.GetSection(S3Options.S3).Get<S3Options>();
             if (awsOptions is null)
@@ -25,7 +26,6 @@ namespace Soundy.FileService.Configurations
                 return new AmazonS3Client(credentials, config);
             });
 
-            // сразу после регистрации клиента можно создать бакет (по желанию)
             using var scope = serviceCollection.BuildServiceProvider().CreateScope();
             var s3Client = scope.ServiceProvider.GetRequiredService<IAmazonS3>();
 

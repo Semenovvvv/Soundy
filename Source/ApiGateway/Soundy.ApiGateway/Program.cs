@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Server.Kestrel.Core;
+using Microsoft.AspNetCore.ResponseCompression;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Soundy.ApiGateway.Configurations;
@@ -16,6 +17,24 @@ var configuration = builder.Configuration;
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
+
+// Добавляем сжатие ответов
+builder.Services.AddResponseCompression(options =>
+{
+    options.EnableForHttps = true;
+    options.Providers.Add<BrotliCompressionProvider>();
+    options.Providers.Add<GzipCompressionProvider>();
+});
+
+builder.Services.Configure<BrotliCompressionProviderOptions>(options =>
+{
+    options.Level = System.IO.Compression.CompressionLevel.Fastest;
+});
+
+builder.Services.Configure<GzipCompressionProviderOptions>(options =>
+{
+    options.Level = System.IO.Compression.CompressionLevel.Fastest;
+});
 
 builder.Services.AddGrpc();
 
@@ -130,17 +149,17 @@ builder.WebHost.ConfigureKestrel(o =>
 
 var app = builder.Build();
 
+// Включаем сжатие ответов
+app.UseResponseCompression();
+
 // CORS должен быть до других middleware
 app.UseCors(builder => builder.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader());
 
-// Middleware для обработки ошибок gRPC
 app.UseMiddleware<GrpcExceptionMiddleware>();
 
-// Добавляем middleware аутентификации и авторизации
 app.UseAuthentication();
 app.UseAuthorization();
 
-// JWT middleware для проверки токенов (должен идти после Authentication, но до MapControllers)
 app.UseMiddleware<JwtMiddleware>();
 
 app.UseSwagger();
@@ -157,7 +176,8 @@ app.UseExceptionHandler(appBuilder =>
         {
             if (app.Services.GetService<ILogger>() is { } logger)
             {
-                logger.LogError(exceptionHandlerFeature.Error, "UseExceptionHandler глобальная ошибка в WebHost");
+                logger.LogError(exceptionHandlerFeature.Error, "UseExceptionHandler" +
+                                                               " глобальная ошибка в WebHost");
             }
         }
         return Task.CompletedTask;

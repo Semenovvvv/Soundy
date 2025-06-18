@@ -82,29 +82,29 @@ namespace Soundy.CatalogService.Services
         {
             await using var dbContext = await _dbFactory.CreateDbContextAsync(ct);
 
-            var track = await dbContext.Tracks.FirstOrDefaultAsync(x => x.Id == dto.Id, ct);
+            var track = await dbContext.Tracks
+                .AsNoTracking()
+                .Include(t => t.LikedBy)
+                .FirstOrDefaultAsync(x => x.Id == dto.Id, ct);
 
             if (track is null)
-                throw new RpcException(new Status(StatusCode.NotFound, $"Track with Id {dto.Id} not found"));
+                throw new RpcException(new Status(StatusCode.NotFound, $"Track with Id = {dto.Id} not found"));
 
-            try
+            var request = new Service.User.GetByIdRequest { Id = track.AuthorId.ToString() };
+            var response = await _userService.GetByIdAsync(request, cancellationToken: ct);
+            var author = _mapper.Map<User>(response.User);
+
+            track.Author = author;
+
+            var trackDto = _mapper.Map<TrackDto>(track);
+            
+            // Проверяем, лайкнул ли пользователь этот трек
+            if (dto.UserId.HasValue)
             {
-                var userResponse = await _userService.GetByIdAsync(new GetByIdRequest { Id = track.AuthorId.ToString() }, cancellationToken: ct);
-                if (userResponse?.User != null)
-                {
-                    track.Author = _mapper.Map<User>(userResponse.User);
-                    _logger.LogInformation("Successfully loaded author information for track {TrackId}", track.Id);
-                }
-            }
-            catch (Exception ex)
-            {
-                _logger.LogWarning(ex, "Failed to load author information for track {TrackId}", track.Id);
+                trackDto.IsLiked = track.LikedBy.Any(lt => lt.UserId == dto.UserId.Value);
             }
 
-            return new GetByIdResponseDto
-            {
-                Track = _mapper.Map<TrackDto>(track)
-            };
+            return new GetByIdResponseDto { Track = trackDto };
         }
 
         /// <summary>
@@ -144,36 +144,58 @@ namespace Soundy.CatalogService.Services
         {
             await using var dbContext = await _dbFactory.CreateDbContextAsync(ct);
 
-            var tracksQuery = dbContext.Tracks
-                .Where(t => EF.Functions.Like(t.Title, $"%{dto.Pattern}%"))
+            var query = dbContext.Tracks
+                .AsNoTracking()
+                .Include(t => t.LikedBy)
+                .Where(x => EF.Functions.ILike(x.Title, $"%{dto.Pattern}%"));
+
+            var totalCount = await query.CountAsync(ct);
+            var pageCount = (int)Math.Ceiling(totalCount / (double)dto.PageSize);
+
+            var tracks = await query
                 .Skip((dto.PageNum - 1) * dto.PageSize)
-                .Take(dto.PageSize);
-            
-            var tracks = await tracksQuery.ToListAsync(ct);
-            
+                .Take(dto.PageSize)
+                .ToListAsync(ct);
+
+            var authorIds = tracks.Select(x => x.AuthorId).Distinct().ToList();
+            var authors = new Dictionary<Guid, User>();
+
+            foreach (var authorId in authorIds)
+            {
+                var request = new Service.User.GetByIdRequest { Id = authorId.ToString() };
+                var response = await _userService.GetByIdAsync(request, cancellationToken: ct);
+                var author = _mapper.Map<User>(response.User);
+                authors[authorId] = author;
+            }
+
             foreach (var track in tracks)
             {
-                try
+                if (authors.TryGetValue(track.AuthorId, out var author))
                 {
-                    var userResponse = await _userService.GetByIdAsync(new GetByIdRequest { Id = track.AuthorId.ToString() }, cancellationToken: ct);
-                    if (userResponse?.User != null)
-                    {
-                        track.Author = _mapper.Map<User>(userResponse.User);
-                    }
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogWarning(ex, "Failed to load author information for track {TrackId}", track.Id);
+                    track.Author = author;
                 }
             }
 
-            var trackDtos = tracks.Select(x => _mapper.Map<TrackDto>(x)).ToList();
+            var trackDtos = tracks.Select(track =>
+            {
+                var trackDto = _mapper.Map<TrackDto>(track);
+                
+                // Проверяем, лайкнул ли пользователь этот трек
+                if (dto.UserId.HasValue)
+                {
+                    trackDto.IsLiked = track.LikedBy.Any(lt => lt.UserId == dto.UserId.Value);
+                }
+                
+                return trackDto;
+            }).ToList();
 
-            return new SearchResponseDto()
+            return new SearchResponseDto
             {
                 Pattern = dto.Pattern,
-                PageNum = dto.PageNum,
                 PageSize = dto.PageSize,
+                PageNum = dto.PageNum,
+                PageCount = pageCount,
+                TotalCount = totalCount,
                 Tracks = trackDtos
             };
         }
@@ -247,11 +269,12 @@ namespace Soundy.CatalogService.Services
         /// <param name="dto">Идентификатор пользователя</param>
         /// <param name="ct">Токен отмены</param>
         /// <returns>Список треков пользователя</returns>
-        public async Task<GetListByUserIdResponseDto> GetListByUserIdRequest(GetListByUserIdRequestDto dto, CancellationToken ct = default)
+        public async Task<GetListByUserIdResponseDto> GetListByUserId(GetListByUserIdRequestDto dto, CancellationToken ct = default)
         {
             await using var dbContext = await _dbFactory.CreateDbContextAsync(ct);
 
             var tracks = await dbContext.Tracks
+                .Include(t => t.LikedBy)
                 .Where(x => x.AuthorId == dto.UserId)
                 .ToListAsync(ct);
             
@@ -277,12 +300,197 @@ namespace Soundy.CatalogService.Services
                 }
             }
 
-            var trackDtos = tracks.Select(x => _mapper.Map<TrackDto>(x)).ToList();
+            var trackDtos = tracks.Select(track =>
+            {
+                var trackDto = _mapper.Map<TrackDto>(track);
+                
+                // Проверяем, лайкнул ли пользователь этот трек
+                trackDto.IsLiked = track.LikedBy.Any(lt => lt.UserId == dto.UserId);
+                
+                return trackDto;
+            }).ToList();
 
             return new GetListByUserIdResponseDto()
             {
                 Tracks = trackDtos
             };
+        }
+
+        /// <summary>
+        /// Добавляет лайк треку от пользователя
+        /// </summary>
+        /// <param name="dto">Данные трека и пользователя</param>
+        /// <param name="ct">Токен отмены</param>
+        /// <returns>Результат операции добавления лайка</returns>
+        public async Task<LikeTrackResponseDto> LikeTrackAsync(LikeTrackRequestDto dto, CancellationToken ct = default)
+        {
+            try
+            {
+                await using var dbContext = await _dbFactory.CreateDbContextAsync(ct);
+
+                // Проверяем существование трека
+                var track = await dbContext.Tracks
+                    .Include(t => t.LikedBy)
+                    .FirstOrDefaultAsync(t => t.Id == dto.TrackId, ct);
+
+                if (track == null)
+                    throw new RpcException(new Status(StatusCode.NotFound, $"Track with Id = {dto.TrackId} not found"));
+
+                // Проверяем, не лайкнул ли уже пользователь этот трек
+                var existingLike = await dbContext.LikedTracks
+                    .FirstOrDefaultAsync(lt => lt.TrackId == dto.TrackId && lt.UserId == dto.UserId, ct);
+
+                if (existingLike != null)
+                {
+                    // Трек уже лайкнут пользователем
+                    var trackDto = _mapper.Map<TrackDto>(track);
+                    trackDto.IsLiked = true;
+                    return new LikeTrackResponseDto { Success = true, Track = trackDto };
+                }
+
+                // Добавляем лайк
+                var likedTrack = new LikedTrack
+                {
+                    TrackId = dto.TrackId,
+                    UserId = dto.UserId,
+                    LikedAt = DateTime.UtcNow,
+                    Track = track
+                };
+
+                await dbContext.LikedTracks.AddAsync(likedTrack, ct);
+                await dbContext.SaveChangesAsync(ct);
+
+                // Загружаем информацию об авторе
+                var request = new Service.User.GetByIdRequest { Id = track.AuthorId.ToString() };
+                var response = await _userService.GetByIdAsync(request, cancellationToken: ct);
+                var author = _mapper.Map<User>(response.User);
+
+                track.Author = author;
+
+                var resultTrackDto = _mapper.Map<TrackDto>(track);
+                resultTrackDto.IsLiked = true;
+
+                return new LikeTrackResponseDto { Success = true, Track = resultTrackDto };
+            }
+            catch (RpcException)
+            {
+                throw;
+            }
+            catch (Exception ex)
+            {
+                throw new RpcException(new Status(StatusCode.Internal, ex.Message));
+            }
+        }
+
+        /// <summary>
+        /// Удаляет лайк трека от пользователя
+        /// </summary>
+        /// <param name="dto">Данные трека и пользователя</param>
+        /// <param name="ct">Токен отмены</param>
+        /// <returns>Результат операции удаления лайка</returns>
+        public async Task<UnlikeTrackResponseDto> UnlikeTrackAsync(UnlikeTrackRequestDto dto, CancellationToken ct = default)
+        {
+            try
+            {
+                await using var dbContext = await _dbFactory.CreateDbContextAsync(ct);
+
+                // Проверяем существование трека
+                var track = await dbContext.Tracks
+                    .Include(t => t.LikedBy)
+                    .FirstOrDefaultAsync(t => t.Id == dto.TrackId, ct);
+
+                if (track == null)
+                    throw new RpcException(new Status(StatusCode.NotFound, $"Track with Id = {dto.TrackId} not found"));
+
+                // Находим существующий лайк
+                var existingLike = await dbContext.LikedTracks
+                    .FirstOrDefaultAsync(lt => lt.TrackId == dto.TrackId && lt.UserId == dto.UserId, ct);
+
+                if (existingLike == null)
+                {
+                    // Лайк не найден
+                    var trackDto = _mapper.Map<TrackDto>(track);
+                    trackDto.IsLiked = false;
+                    return new UnlikeTrackResponseDto { Success = true, Track = trackDto };
+                }
+
+                // Удаляем лайк
+                dbContext.LikedTracks.Remove(existingLike);
+                await dbContext.SaveChangesAsync(ct);
+
+                // Загружаем информацию об авторе
+                var request = new Service.User.GetByIdRequest { Id = track.AuthorId.ToString() };
+                var response = await _userService.GetByIdAsync(request, cancellationToken: ct);
+                var author = _mapper.Map<User>(response.User);
+
+                track.Author = author;
+
+                var resultTrackDto = _mapper.Map<TrackDto>(track);
+                resultTrackDto.IsLiked = false;
+
+                return new UnlikeTrackResponseDto { Success = true, Track = resultTrackDto };
+            }
+            catch (RpcException)
+            {
+                throw;
+            }
+            catch (Exception ex)
+            {
+                throw new RpcException(new Status(StatusCode.Internal, ex.Message));
+            }
+        }
+
+        /// <summary>
+        /// Получает список лайкнутых треков пользователя
+        /// </summary>
+        /// <param name="dto">Идентификатор пользователя</param>
+        /// <param name="ct">Токен отмены</param>
+        /// <returns>Список лайкнутых треков</returns>
+        public async Task<GetLikedTracksResponseDto> GetLikedTracksAsync(GetLikedTracksRequestDto dto, CancellationToken ct = default)
+        {
+            try
+            {
+                await using var dbContext = await _dbFactory.CreateDbContextAsync(ct);
+
+                // Получаем все лайкнутые треки пользователя
+                var likedTracks = await dbContext.LikedTracks
+                    .Where(lt => lt.UserId == dto.UserId)
+                    .Include(lt => lt.Track)
+                    .OrderByDescending(lt => lt.LikedAt)
+                    .ToListAsync(ct);
+
+                // Получаем идентификаторы авторов треков
+                var authorIds = likedTracks.Select(lt => lt.Track.AuthorId).Distinct().ToList();
+
+                // Загружаем информацию об авторах
+                var authors = new Dictionary<Guid, User>();
+                foreach (var authorId in authorIds)
+                {
+                    var request = new Service.User.GetByIdRequest { Id = authorId.ToString() };
+                    var response = await _userService.GetByIdAsync(request, cancellationToken: ct);
+                    var author = _mapper.Map<User>(response.User);
+                    authors[authorId] = author;
+                }
+
+                // Формируем список треков с авторами
+                var tracks = likedTracks.Select(lt =>
+                {
+                    lt.Track.Author = authors[lt.Track.AuthorId];
+                    var trackDto = _mapper.Map<TrackDto>(lt.Track);
+                    trackDto.IsLiked = true;
+                    return trackDto;
+                }).ToList();
+
+                return new GetLikedTracksResponseDto { Tracks = tracks };
+            }
+            catch (RpcException)
+            {
+                throw;
+            }
+            catch (Exception ex)
+            {
+                throw new RpcException(new Status(StatusCode.Internal, ex.Message));
+            }
         }
     }
 }

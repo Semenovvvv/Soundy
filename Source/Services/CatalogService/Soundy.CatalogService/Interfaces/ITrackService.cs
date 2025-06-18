@@ -58,6 +58,30 @@ namespace Soundy.CatalogService.Interfaces
         /// <param name="dto">Идентификатор пользователя</param>
         /// <param name="ct">Токен отмены</param>
         /// <returns>Список треков пользователя</returns>
-        public Task<GetListByUserIdResponseDto> GetListByUserIdRequest(GetListByUserIdRequestDto dto, CancellationToken ct = default);
+        public Task<GetListByUserIdResponseDto> GetListByUserId(GetListByUserIdRequestDto dto, CancellationToken ct = default);
+
+        /// <summary>
+        /// Добавляет лайк треку от пользователя
+        /// </summary>
+        /// <param name="dto">Данные трека и пользователя</param>
+        /// <param name="ct">Токен отмены</param>
+        /// <returns>Результат операции добавления лайка</returns>
+        public Task<LikeTrackResponseDto> LikeTrackAsync(LikeTrackRequestDto dto, CancellationToken ct = default);
+
+        /// <summary>
+        /// Удаляет лайк трека от пользователя
+        /// </summary>
+        /// <param name="dto">Данные трека и пользователя</param>
+        /// <param name="ct">Токен отмены</param>
+        /// <returns>Результат операции удаления лайка</returns>
+        public Task<UnlikeTrackResponseDto> UnlikeTrackAsync(UnlikeTrackRequestDto dto, CancellationToken ct = default);
+
+        /// <summary>
+        /// Получает список лайкнутых треков пользователя
+        /// </summary>
+        /// <param name="dto">Идентификатор пользователя</param>
+        /// <param name="ct">Токен отмены</param>
+        /// <returns>Список лайкнутых треков</returns>
+        public Task<GetLikedTracksResponseDto> GetLikedTracksAsync(GetLikedTracksRequestDto dto, CancellationToken ct = default);
     }
 }

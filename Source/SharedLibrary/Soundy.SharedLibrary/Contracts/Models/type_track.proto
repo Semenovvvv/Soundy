@@ -12,4 +12,5 @@ message Track {
     google.protobuf.Timestamp created_at = 5;
     int32 duration = 6;
     string avatar_url = 7;
+    bool is_liked = 8;
 }

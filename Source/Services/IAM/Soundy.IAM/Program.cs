@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Mvc.Formatters;
 using Microsoft.AspNetCore.Server.Kestrel.Core;
+using Microsoft.AspNetCore.ResponseCompression;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Soundy.IAM;
@@ -20,6 +21,24 @@ builder.Configuration.AddEnvironmentVariables();
 var configuration = builder.Configuration;
 
 builder.Services.Configure<JwtConfig>(configuration.GetSection("JwtConfig"));
+
+// Добавляем сжатие ответов
+builder.Services.AddResponseCompression(options =>
+{
+    options.EnableForHttps = true;
+    options.Providers.Add<BrotliCompressionProvider>();
+    options.Providers.Add<GzipCompressionProvider>();
+});
+
+builder.Services.Configure<BrotliCompressionProviderOptions>(options =>
+{
+    options.Level = System.IO.Compression.CompressionLevel.Fastest;
+});
+
+builder.Services.Configure<GzipCompressionProviderOptions>(options =>
+{
+    options.Level = System.IO.Compression.CompressionLevel.Fastest;
+});
 
 //builder.Services.AddDbContext<IamDbContext>(options =>
 //    options.UseSqlServer(configuration.GetConnectionString("DefaultConnection")));
@@ -86,6 +105,9 @@ using (var scope = app.Services.CreateScope())
 // Настройка middleware
 app.UseAuthentication();
 app.UseAuthorization();
+
+// Включаем сжатие ответов
+app.UseResponseCompression();
 
 app.MapGrpcService<IAMGrpcController>();
 

@@ -33,7 +33,6 @@ namespace Soundy.UserService.Services
             _logger = logger;
         }
 
-        // TODO Вынести создание плейлиста в api gateway
         public async Task<CreateResponseDto> CreateUserAsync(CreateRequestDto dto, CancellationToken ct = default)
         {
             try
@@ -57,10 +56,6 @@ namespace Soundy.UserService.Services
                 await dbContext.Users.AddAsync(user, ct);
                 await _playlistService.CreateFavoriteAsync(new CreateFavoriteRequest() { AuthorId = user.Id.ToString() });
                 await dbContext.SaveChangesAsync(ct);
-
-                // Примечание: мы не обновляем данные в IAM при создании пользователя,
-                // так как предполагается, что регистрация происходит через IAM сервис
-                // и данные о пользователе уже есть в IAM.
 
                 return new CreateResponseDto { User = _mapper.Map<UserDto>(user) };
             }
@@ -103,16 +98,13 @@ namespace Soundy.UserService.Services
                 if (string.IsNullOrEmpty(dto.UserName))
                     throw new RpcException(new Status(StatusCode.InvalidArgument, "Username is required"));
 
-                // Обновляем только разрешенные поля: Name, Bio, AvatarUrl
                 user.Name = dto.UserName;
                 
-                // Обновляем Bio, если оно указано
                 if (dto.Bio != null)
                 {
                     user.Bio = dto.Bio;
                 }
                 
-                // Обновляем AvatarUrl, если оно указано
                 if (dto.AvatarUrl != null)
                 {
                     user.AvatarUrl = dto.AvatarUrl;
@@ -120,7 +112,6 @@ namespace Soundy.UserService.Services
 
                 await dbContext.SaveChangesAsync(ct);
 
-                // Обновляем данные в IAM сервисе
                 try
                 {
                     var iamUpdateRequest = new UpdateUserDataRequest
@@ -128,12 +119,6 @@ namespace Soundy.UserService.Services
                         UserId = user.Id.ToString(),
                         Username = user.Name
                     };
-
-                    // Не передаем email в IAM сервис для обновления
-                    // if (dto.Email != null)
-                    // {
-                    //     iamUpdateRequest.Email = user.Email;
-                    // }
 
                     _logger.LogInformation("Updating user data in IAM for user ID: {UserId}", user.Id);
                     var iamResponse = await _iamService.UpdateUserDataAsync(iamUpdateRequest, cancellationToken: ct);
@@ -145,7 +130,6 @@ namespace Soundy.UserService.Services
                 }
                 catch (Exception ex)
                 {
-                    // Логируем ошибку, но не фейлим операцию обновления
                     _logger.LogError(ex, "Error updating user data in IAM for user ID: {UserId}", user.Id);
                 }
 
@@ -177,7 +161,6 @@ namespace Soundy.UserService.Services
 
                 if (deleteResult > 0)
                 {
-                    // Удаляем пользователя из IAM сервиса
                     try
                     {
                         _logger.LogInformation("Deleting user from IAM service: {UserId}", dto.Id);
@@ -191,7 +174,6 @@ namespace Soundy.UserService.Services
                     }
                     catch (Exception ex)
                     {
-                        // Логируем ошибку, но не фейлим операцию удаления в UserService
                         _logger.LogError(ex, "Error deleting user from IAM service: {UserId}", dto.Id);
                     }
                 }

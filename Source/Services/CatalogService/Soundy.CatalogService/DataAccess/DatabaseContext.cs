@@ -10,6 +10,7 @@ namespace Soundy.CatalogService.DataAccess
         internal DbSet<Playlist> Playlists { get; set; }
         internal DbSet<Album> Albums { get; set; }
         internal DbSet<PlaylistTrack> PlaylistsTracks { get; set; }
+        internal DbSet<LikedTrack> LikedTracks { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -18,6 +19,7 @@ namespace Soundy.CatalogService.DataAccess
             modelBuilder.ApplyConfiguration(new PlaylistConfiguration());
             modelBuilder.ApplyConfiguration(new AlbumConfiguration());
             modelBuilder.ApplyConfiguration(new PlaylistTrackConfiguration());
+            modelBuilder.ApplyConfiguration(new LikedTrackConfiguration());
         }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)

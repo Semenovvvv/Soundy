@@ -12,4 +12,4 @@ public interface IAuthService
     Task<AuthResult> RefreshTokenAsync(string refreshToken);
     Task<(bool Success, string? ErrorMessage)> UpdateUserDataAsync(string userId, string username, string? email = null);
     Task<(bool Success, string? ErrorMessage)> DeleteUserAsync(string userId);
-} 
+}

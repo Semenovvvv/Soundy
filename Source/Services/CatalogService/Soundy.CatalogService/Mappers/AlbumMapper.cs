@@ -75,15 +75,17 @@ namespace Soundy.CatalogService.Mappers
                 .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.Id))
                 .ForMember(dest => dest.Title, opt => opt.MapFrom(src => src.Title))
                 .ForMember(dest => dest.AuthorId, opt => opt.MapFrom(src => src.AuthorId.ToString()))
+                .ForMember(dest => dest.Author, opt => opt.MapFrom(src => src.Author))
                 .ForMember(dest => dest.CreatedAt, opt => opt.MapFrom(src => src.CreatedAt))
                 .ForMember(dest => dest.AvatarUrl, opt => opt.MapFrom(src => src.AvatarUrl))
-                .ForMember(dest => dest.Tracks, opt => opt.MapFrom(src => src.Tracks));
+                .ForMember(dest => dest.Tracks, opt => opt.MapFrom(src => src.Tracks))
+                .ForMember(dest => dest.TrackCount, opt => opt.MapFrom(src => src.Tracks.Count));
 
             CreateMap<AlbumDto, Types.Album>()
                 .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.Id.ToString()))
                 .ForMember(dest => dest.Title, opt => opt.MapFrom(src => src.Title))
                 .ForMember(dest => dest.AuthorId, opt => opt.MapFrom(src => src.AuthorId))
-                .ForMember(dest => dest.CreatedAt, opt => opt.MapFrom(src => Timestamp.FromDateTime(src.CreatedAt.ToUniversalTime())))
+                .ForMember(dest => dest.CreatedAt, opt => opt.MapFrom(src => src.CreatedAt.ToTimestamp()))
                 .ForMember(dest => dest.AvatarUrl, opt => opt.MapFrom(src => src.AvatarUrl))
                 .ForMember(dest => dest.Tracks, opt => opt.MapFrom(src => src.Tracks));
         }

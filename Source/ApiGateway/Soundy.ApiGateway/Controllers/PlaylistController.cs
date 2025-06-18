@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Service.Playlist;
+using Soundy.ApiGateway.Configurations;
 using Soundy.SharedLibrary.Common.Response;
 
 namespace Soundy.ApiGateway.Controllers;
@@ -19,6 +20,7 @@ public class PlaylistController : ControllerBase
     /// Создает новый плейлист.
     /// </summary>
     [HttpPost]
+    [JwtAuthorize]
     public async Task<IActionResult> CreateAsync([FromBody] CreateRequest dto, CancellationToken ct = default)
     {
         var response = await _playlistService.CreateAsync(dto, cancellationToken: ct);
@@ -29,6 +31,7 @@ public class PlaylistController : ControllerBase
     /// Добавляет плейлист в избранное.
     /// </summary>
     [HttpPost("favorite")]
+    [JwtAuthorize]
     public async Task<IActionResult> CreateFavoriteAsync([FromBody] CreateFavoriteRequest dto, CancellationToken ct = default)
     {
         var response = await _playlistService.CreateFavoriteAsync(dto, cancellationToken: ct);
@@ -39,6 +42,7 @@ public class PlaylistController : ControllerBase
     /// Получает плейлист по ID.
     /// </summary>
     [HttpGet("{id}")]
+    [JwtAuthorize]
     public async Task<IActionResult> GetByIdAsync([FromRoute] string id, CancellationToken ct = default)
     {
         var request = new GetByIdRequest() { Id = id };
@@ -50,6 +54,7 @@ public class PlaylistController : ControllerBase
     /// Получает список плейлистов по ID автора.
     /// </summary>
     [HttpGet("author/{authorId}")]
+    [JwtAuthorize]
     public async Task<IActionResult> GetListByAuthorIdAsync([FromRoute] string authorId, CancellationToken ct = default)
     {
         var request = new GetListByAuthorIdRequest { AuthorId = authorId };
@@ -61,6 +66,7 @@ public class PlaylistController : ControllerBase
     /// Получает избранный плейлист.
     /// </summary>
     [HttpGet("favorite/{id}")]
+    [JwtAuthorize]
     public async Task<IActionResult> GetFavoriteAsync(string id, CancellationToken ct = default)
     {
         var dto = new GetFavoriteRequest(){ AuthorId = id};
@@ -69,6 +75,7 @@ public class PlaylistController : ControllerBase
     }
 
     [HttpPost("{playlistId}/tracks")]
+    [JwtAuthorize]
     public async Task<IActionResult> AddTrack(string playlistId, [FromBody] string trackId, CancellationToken ct)
     {
         if (string.IsNullOrEmpty(trackId))
@@ -89,6 +96,7 @@ public class PlaylistController : ControllerBase
     /// Обновляет плейлист.
     /// </summary>
     [HttpPut("{id}")]
+    [JwtAuthorize]
     public async Task<IActionResult> UpdateAsync([FromBody] UpdateRequest dto, CancellationToken ct = default)
     {
         var response = await _playlistService.UpdateAsync(dto, cancellationToken: ct);
@@ -99,6 +107,7 @@ public class PlaylistController : ControllerBase
     /// Удаляет плейлист.
     /// </summary>
     [HttpDelete("{id}")]
+    [JwtAuthorize]
     public async Task<IActionResult> DeleteAsync([FromRoute] string id, CancellationToken ct = default)
     {
         var request = new DeleteRequest { Id = id };
@@ -115,6 +124,7 @@ public class PlaylistController : ControllerBase
     /// <param name="ct">Токен отмены</param>
     /// <returns>Список плейлистов, соответствующих критериям поиска</returns>
     [HttpGet("search")]
+    [JwtAuthorize]
     public async Task<IActionResult> SearchAsync([FromQuery] string pattern, [FromQuery] int pageSize = 10, [FromQuery] int pageNum = 1, CancellationToken ct = default)
     {
         var request = new SearchRequest
@@ -135,6 +145,7 @@ public class PlaylistController : ControllerBase
     /// <param name="ct">Токен отмены</param>
     /// <returns>Список последних созданных плейлистов</returns>
     [HttpGet("latest")]
+    [JwtAuthorize]
     public async Task<IActionResult> GetLatestPlaylists([FromQuery] int count = 10, CancellationToken ct = default)
     {
         var request = new GetLatestPlaylistsRequest { Count = count };

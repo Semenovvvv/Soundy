@@ -47,6 +47,24 @@ namespace Soundy.CatalogService.Migrations
                     b.ToTable("Albums");
                 });
 
+            modelBuilder.Entity("Soundy.CatalogService.Entities.LikedTrack", b =>
+                {
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("TrackId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("LikedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("UserId", "TrackId");
+
+                    b.HasIndex("TrackId");
+
+                    b.ToTable("LikedTracks");
+                });
+
             modelBuilder.Entity("Soundy.CatalogService.Entities.Playlist", b =>
                 {
                     b.Property<Guid>("Id")
@@ -131,6 +149,17 @@ namespace Soundy.CatalogService.Migrations
                     b.ToTable("Tracks");
                 });
 
+            modelBuilder.Entity("Soundy.CatalogService.Entities.LikedTrack", b =>
+                {
+                    b.HasOne("Soundy.CatalogService.Entities.Track", "Track")
+                        .WithMany("LikedBy")
+                        .HasForeignKey("TrackId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Track");
+                });
+
             modelBuilder.Entity("Soundy.CatalogService.Entities.PlaylistTrack", b =>
                 {
                     b.HasOne("Soundy.CatalogService.Entities.Playlist", "Playlist")
@@ -173,6 +202,8 @@ namespace Soundy.CatalogService.Migrations
 
             modelBuilder.Entity("Soundy.CatalogService.Entities.Track", b =>
                 {
+                    b.Navigation("LikedBy");
+
                     b.Navigation("Playlists");
                 });
 #pragma warning restore 612, 618

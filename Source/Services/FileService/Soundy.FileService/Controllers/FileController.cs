@@ -21,7 +21,8 @@ namespace Soundy.FileService.Controllers
             _bucketName = configuration.GetSection(S3Options.S3).Get<S3Options>()?.BucketName;
         }
 
-        public override async Task GetTrackStream(GetTrackRequest request, IServerStreamWriter<GetTrackResponse> responseStream, ServerCallContext context)
+        public override async Task GetTrackStream(GetTrackRequest request, 
+            IServerStreamWriter<GetTrackResponse> responseStream, ServerCallContext context)
         {
             var onChunk = async (byte[] chunk, string contentType) =>
             {

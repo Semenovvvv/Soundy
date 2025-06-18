@@ -15,6 +15,11 @@ service TrackGrpcService {
     
     rpc Search(SearchRequest) returns (SearchResponse);
     //rpc GetListByPlaylist(GetListByPlaylistRequest) returns (GetListByPlaylistResponse);
+    
+    // Likes
+    rpc LikeTrack(LikeTrackRequest) returns (LikeTrackResponse);
+    rpc UnlikeTrack(UnlikeTrackRequest) returns (UnlikeTrackResponse);
+    rpc GetLikedTracks(GetLikedTracksRequest) returns (GetLikedTracksResponse);
 }
 
 message CreateRequest {
@@ -30,6 +35,7 @@ message CreateResponse{
 
 message GetByIdRequest {
     string id = 1;
+    string user_id = 2; // Опциональный ID пользователя для проверки лайка
 }
 message GetByIdResponse{
     types.Track track = 1;
@@ -54,12 +60,15 @@ message SearchRequest {
     string pattern = 1;
     int32 page_size = 2;
     int32 page_num = 3;
+    string user_id = 4; // Опциональный ID пользователя для проверки лайков
 }
 message SearchResponse{
     string pattern = 1;
     int32 page_size = 2;
     int32 page_num = 3;
-    repeated types.Track tracks = 4;
+    int32 page_count = 4;
+    int32 total_count = 5;
+    repeated types.Track tracks = 6;
 }
 
 //message GetListByPlaylistRequest{
@@ -76,5 +85,34 @@ message GetListByUserIdRequest{
 }
 
 message GetListByUserIdResponse{
+    repeated types.Track tracks = 1;
+}
+
+// Новые сообщения для лайков
+message LikeTrackRequest {
+    string track_id = 1;
+    string user_id = 2;
+}
+
+message LikeTrackResponse {
+    bool success = 1;
+    types.Track track = 2;
+}
+
+message UnlikeTrackRequest {
+    string track_id = 1;
+    string user_id = 2;
+}
+
+message UnlikeTrackResponse {
+    bool success = 1;
+    types.Track track = 2;
+}
+
+message GetLikedTracksRequest {
+    string user_id = 1;
+}
+
+message GetLikedTracksResponse {
     repeated types.Track tracks = 1;
 }

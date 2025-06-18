@@ -3,6 +3,7 @@ using Google.Protobuf;
 using Grpc.Core;
 using Microsoft.AspNetCore.Mvc;
 using Service.File;
+using Soundy.ApiGateway.Configurations;
 
 namespace Soundy.ApiGateway.Controllers
 {

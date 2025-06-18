@@ -13,9 +13,7 @@ public class JwtMiddleware
     private readonly JwtConfig _jwtConfig;
     private readonly ILogger<JwtMiddleware> _logger;
 
-    public JwtMiddleware(
-        RequestDelegate next, 
-        IOptions<JwtConfig> jwtOptions,
+    public JwtMiddleware(RequestDelegate next, IOptions<JwtConfig> jwtOptions, 
         ILogger<JwtMiddleware> logger)
     {
         _next = next;
@@ -23,22 +21,18 @@ public class JwtMiddleware
         _logger = logger;
     }
 
-    public async Task InvokeAsync(
-        HttpContext context, 
-        IAMGrpcService.IAMGrpcServiceClient iamClient)
+    public async Task InvokeAsync(HttpContext context, IAMGrpcService.IAMGrpcServiceClient iamClient)
     {
         var authHeader = context.Request.Headers["Authorization"].FirstOrDefault();
         _logger.LogInformation($"Auth header: {authHeader}");
 
         string token = null;
 
-        // Проверяем, если строка начинается с Bearer 
         if (!string.IsNullOrEmpty(authHeader) && authHeader.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase))
         {
             token = authHeader.Substring("Bearer ".Length).Trim();
             _logger.LogInformation("Получен токен с префиксом Bearer");
         }
-        // Иначе предполагаем, что это сам токен (например, в Swagger могут вставить только сам токен)
         else if (!string.IsNullOrEmpty(authHeader))
         {
             token = authHeader.Trim();
@@ -66,10 +60,7 @@ public class JwtMiddleware
         await _next(context);
     }
 
-    private async Task AttachUserToContext(
-        HttpContext context, 
-        IAMGrpcService.IAMGrpcServiceClient iamClient, 
-        string token)
+    private async Task AttachUserToContext(HttpContext context, IAMGrpcService.IAMGrpcServiceClient iamClient, string token)
     {
         try
         {

@@ -4,7 +4,7 @@
     {
         public Guid Id { get; set; }
         public Guid AuthorId { get; set; }
-        public User Author { get; set; }
+        public User? Author { get; set; }
         public string Title { get; set; }
         public DateTime CreatedAt { get; set; }
         public bool IsFavorite { get; set; }

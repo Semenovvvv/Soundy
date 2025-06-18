@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Service.Track;
+using Soundy.ApiGateway.Configurations;
 
 namespace Soundy.ApiGateway.Controllers;
 
@@ -18,6 +19,7 @@ public class TrackController : ControllerBase
     /// Создает новый трек.
     /// </summary>
     [HttpPost]
+    [JwtAuthorize]
     public async Task<IActionResult> CreateAsync([FromBody] CreateRequest dto, CancellationToken ct = default)
     {
         var response = await _trackService.CreateAsync(dto, cancellationToken: ct);
@@ -28,9 +30,10 @@ public class TrackController : ControllerBase
     /// Получает трек по ID.
     /// </summary>
     [HttpGet("{id}")]
-    public async Task<IActionResult> GetByIdAsync([FromRoute] string id, CancellationToken ct = default)
+    [JwtAuthorize]
+    public async Task<IActionResult> GetByIdAsync([FromRoute] string id, [FromQuery] string? userId = null, CancellationToken ct = default)
     {
-        var request = new GetByIdRequest { Id = id };
+        var request = new GetByIdRequest { Id = id, UserId = userId };
         var response = await _trackService.GetByIdAsync(request, cancellationToken: ct);
         if (response == null)
         {
@@ -43,8 +46,10 @@ public class TrackController : ControllerBase
     /// Выполняет поиск треков.
     /// </summary>
     [HttpGet("search")]
-    public async Task<IActionResult> SearchAsync([FromQuery] SearchRequest dto, CancellationToken ct = default)
+    [JwtAuthorize]
+    public async Task<IActionResult> SearchAsync([FromQuery] SearchRequest dto, [FromQuery] string? userId = null, CancellationToken ct = default)
     {
+        dto.UserId = userId;
         var response = await _trackService.SearchAsync(dto, cancellationToken: ct);
         return Ok(response);
     }
@@ -53,6 +58,7 @@ public class TrackController : ControllerBase
     /// Обновляет трек.
     /// </summary>
     [HttpPut("{id}")]
+    [JwtAuthorize]
     public async Task<IActionResult> UpdateAsync([FromBody] UpdateRequest dto, CancellationToken ct = default)
     {
         var response = await _trackService.UpdateAsync(dto, cancellationToken: ct);
@@ -63,6 +69,7 @@ public class TrackController : ControllerBase
     /// Удаляет трек.
     /// </summary>
     [HttpDelete("{id}")]
+    [JwtAuthorize]
     public async Task<IActionResult> DeleteAsync([FromRoute] string id, CancellationToken ct = default)
     {
         var request = new DeleteRequest { Id = id };
@@ -71,9 +78,44 @@ public class TrackController : ControllerBase
     }
 
     /// <summary>
+    /// Лайкает трек пользователем.
+    /// </summary>
+    [HttpPost("like")]
+    [JwtAuthorize]
+    public async Task<IActionResult> LikeTrackAsync([FromBody] LikeTrackRequest request, CancellationToken ct = default)
+    {
+        var response = await _trackService.LikeTrackAsync(request, cancellationToken: ct);
+        return Ok(response);
+    }
+
+    /// <summary>
+    /// Удаляет лайк трека пользователя.
+    /// </summary>
+    [HttpDelete("like")]
+    [JwtAuthorize]
+    public async Task<IActionResult> UnlikeTrackAsync([FromBody] UnlikeTrackRequest request, CancellationToken ct = default)
+    {
+        var response = await _trackService.UnlikeTrackAsync(request, cancellationToken: ct);
+        return Ok(response);
+    }
+
+    /// <summary>
+    /// Получает список лайкнутых треков пользователя.
+    /// </summary>
+    [HttpGet("liked/{userId}")]
+    [JwtAuthorize]
+    public async Task<IActionResult> GetLikedTracksAsync([FromRoute] string userId, CancellationToken ct = default)
+    {
+        var request = new GetLikedTracksRequest { UserId = userId };
+        var response = await _trackService.GetLikedTracksAsync(request, cancellationToken: ct);
+        return Ok(response);
+    }
+
+    /// <summary>
     /// Получает список треков по ID автора.
     /// </summary>
     [HttpGet("author/{authorId}")]
+    [JwtAuthorize]
     public async Task<IActionResult> GetByAuthorIdAsync([FromRoute] string authorId, CancellationToken ct = default)
     {
         var request = new GetListByUserIdRequest { UserId = authorId };

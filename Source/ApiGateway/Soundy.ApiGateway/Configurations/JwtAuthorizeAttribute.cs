@@ -1,7 +1,7 @@
+using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
-using Microsoft.Extensions.Logging;
 
 namespace Soundy.ApiGateway.Configurations;
 
@@ -26,7 +26,7 @@ public class JwtAuthorizeAttribute : Attribute, IAuthorizationFilter
 
         // Проверяем, есть ли аутентифицированный пользователь
         var user = context.HttpContext.User;
-        if (user == null || !user.Identity.IsAuthenticated)
+        if (user.Identity is { IsAuthenticated: false })
         {
             logger?.LogWarning("JwtAuthorizeAttribute: Пользователь не аутентифицирован");
             
@@ -34,8 +34,8 @@ public class JwtAuthorizeAttribute : Attribute, IAuthorizationFilter
             context.Result = new UnauthorizedResult();
             return;
         }
-
-        string userId = user.Claims.FirstOrDefault(x => x.Type == "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier").Value;
+        
+        var userId = user.Claims.FirstOrDefault(x => x.Type == ClaimTypes.NameIdentifier)?.Value;
         
         if (string.IsNullOrEmpty(userId))
         {

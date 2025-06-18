@@ -169,7 +169,7 @@ public class AuthController : ControllerBase
     }
 
     [HttpPost("signout")]
-    [Authorize]
+    [JwtAuthorize]
     public async Task<IActionResult> SignOut([FromBody] SignOutRequest request)
     {
         try
@@ -189,6 +189,7 @@ public class AuthController : ControllerBase
     }
 
     [HttpPost("validate-token")]
+    [JwtAuthorize]
     public async Task<IActionResult> ValidateToken([FromBody] ValidateTokenRequest request)
     {
         try

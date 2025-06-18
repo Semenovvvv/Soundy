@@ -1,6 +1,7 @@
 ﻿using System.Runtime.CompilerServices;
 using Microsoft.AspNetCore.Mvc;
 using Service.Album;
+using Soundy.ApiGateway.Configurations;
 
 namespace Soundy.ApiGateway.Controllers
 {
@@ -16,6 +17,7 @@ namespace Soundy.ApiGateway.Controllers
         }
 
         [HttpPost]
+        [JwtAuthorize]
         public async Task<IActionResult> CreateAsync([FromBody] CreateRequest request, [EnumeratorCancellation] CancellationToken ct)
         {
             var response = await _albumService.CreateAsync(request, cancellationToken: ct);
@@ -23,6 +25,7 @@ namespace Soundy.ApiGateway.Controllers
         }
 
         [HttpPost("{albumId}")]
+        [JwtAuthorize]
         public async Task<IActionResult> AddTrackAsync(string albumId, [FromBody] string trackId, [EnumeratorCancellation] CancellationToken ct)
         {
             var request = new AddTrackRequest()
@@ -38,6 +41,7 @@ namespace Soundy.ApiGateway.Controllers
         /// Получает все альбомы пользователя по ID автора.
         /// </summary>
         [HttpGet("author/{authorId}")]
+        [JwtAuthorize]
         public async Task<IActionResult> GetByAuthorIdAsync([FromRoute] string authorId, CancellationToken ct = default)
         {
             var request = new GetByAuthorIdRequest { AuthorId = authorId };
@@ -46,6 +50,7 @@ namespace Soundy.ApiGateway.Controllers
         }
 
         [HttpGet("{id}")]
+        [JwtAuthorize]
         public async Task<IActionResult> GetByIdAsync([FromRoute] string id, CancellationToken ct = default)
         {
             var request = new GetByIdRequest { Id = id };
@@ -62,6 +67,7 @@ namespace Soundy.ApiGateway.Controllers
         /// <param name="ct">Токен отмены</param>
         /// <returns>Список альбомов, соответствующих критериям поиска</returns>
         [HttpGet("search")]
+        [JwtAuthorize]
         public async Task<IActionResult> SearchAsync([FromQuery] string pattern, [FromQuery] int pageSize = 10, [FromQuery] int pageNum = 1, CancellationToken ct = default)
         {
             var request = new SearchRequest
@@ -82,6 +88,7 @@ namespace Soundy.ApiGateway.Controllers
         /// <param name="ct">Токен отмены</param>
         /// <returns>Список последних созданных альбомов</returns>
         [HttpGet("latest")]
+        [JwtAuthorize]
         public async Task<IActionResult> GetLatestAlbums([FromQuery] int count = 10, CancellationToken ct = default)
         {
             var request = new GetLatestAlbumsRequest { Count = count };

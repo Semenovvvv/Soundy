@@ -47,9 +47,15 @@ public class TrackController : ControllerBase
     /// </summary>
     [HttpGet("search")]
     [JwtAuthorize]
-    public async Task<IActionResult> SearchAsync([FromQuery] SearchRequest dto, [FromQuery] string? userId = null, CancellationToken ct = default)
+    public async Task<IActionResult> SearchAsync([FromQuery] string pattern, [FromQuery] int pageSize = 10, [FromQuery] int pageNum = 1, [FromQuery] string? userId = null, CancellationToken ct = default)
     {
-        dto.UserId = userId;
+        //dto.UserId = userId;
+        var dto = new SearchRequest()
+        {
+            PageNum = pageNum,
+            PageSize = pageSize,
+            Pattern = pattern
+        };
         var response = await _trackService.SearchAsync(dto, cancellationToken: ct);
         return Ok(response);
     }
